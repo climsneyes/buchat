@@ -1,5 +1,11 @@
 import os
 
+# 환경변수에서 firebase_key.json 내용을 읽어서 파일로 저장
+firebase_key_json = os.getenv("FIREBASE_KEY_JSON")
+if firebase_key_json:
+    with open("firebase_key.json", "w", encoding="utf-8") as f:
+        f.write(firebase_key_json)
+
 # config.py가 없으면 환경변수로 자동 생성
 if not os.path.exists("config.py"):
     with open("config.py", "w", encoding="utf-8") as f:
