@@ -15,6 +15,18 @@ import geocoder
 import time
 import firebase_admin
 from firebase_admin import credentials, db
+import os
+
+# 환경변수에서 config.py를 자동 생성
+if not os.path.exists("config.py"):
+    with open("config.py", "w", encoding="utf-8") as f:
+        f.write(f'''
+import os
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
+FIREBASE_DB_URL = os.getenv("FIREBASE_DB_URL")
+FIREBASE_KEY_PATH = os.getenv("FIREBASE_KEY_PATH", "firebase_key.json")
+''')
 
 # --- Firebase 초기화 ---
 try:
