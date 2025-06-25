@@ -29,6 +29,12 @@ import time
 import firebase_admin
 from firebase_admin import credentials, db
 
+IS_SERVER = os.environ.get("CLOUDTYPE") == "1"  # Cloudtype 환경변수 등으로 구분
+
+if not IS_SERVER:
+    import sounddevice as sd
+    from scipy.io.wavfile import write
+
 # --- Firebase 초기화 ---
 try:
     cred = credentials.Certificate(FIREBASE_KEY_PATH)
