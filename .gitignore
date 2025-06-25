@@ -1,0 +1,5 @@
+config.py
+firebase_key.json
+*.env
+storage/data/*
+storage/temp/*
