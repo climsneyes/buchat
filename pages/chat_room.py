@@ -1,12 +1,16 @@
 import flet as ft
 import openai
 from config import OPENAI_API_KEY, MODEL_NAME
-import sounddevice as sd
-from scipy.io.wavfile import write
 import os
 from flet import Column, Switch
 import time
 from firebase_admin import db
+
+IS_SERVER = os.environ.get("CLOUDTYPE") == "1"  # Cloudtype 환경변수 등으로 구분
+
+if not IS_SERVER:
+    import sounddevice as sd
+    from scipy.io.wavfile import write
 
 client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
