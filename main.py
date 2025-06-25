@@ -208,21 +208,47 @@ def main(page: ft.Page):
             print(f"Firebase에서 방 정보 가져오기 실패: {e}")
 
     def go_chat(user_lang, target_lang, room_id, room_title="채팅방"):
+        def after_nickname(nickname):
+            page.session.set("nickname", nickname)
+            page.views.clear()
+            page.views.append(ChatRoomPage(
+                page, 
+                room_id=room_id, 
+                room_title=room_title, 
+                user_lang=user_lang, 
+                target_lang=target_lang,
+                on_back=lambda e: go_home(user_lang),
+                on_share=on_share_clicked
+            ))
+            page.go(f"/chat/{room_id}")
+
         def on_share_clicked(e):
             print(f"--- DEBUG: 공유 버튼 클릭됨 ---")
             show_qr_dialog(room_id, room_title)
 
-        page.views.clear()
-        page.views.append(ChatRoomPage(
-            page, 
-            room_id=room_id, 
-            room_title=room_title, 
-            user_lang=user_lang, 
-            target_lang=target_lang,
-            on_back=lambda e: go_home(user_lang),
-            on_share=on_share_clicked
-        ))
-        page.go(f"/chat/{room_id}")
+        # 닉네임이 없으면 입력받기
+        if not page.session.get("nickname"):
+            def on_nickname_submit(e):
+                nickname = nickname_field.value.strip()
+                if nickname:
+                    after_nickname(nickname)
+            nickname_field = ft.TextField(label="닉네임을 입력하세요", on_submit=on_nickname_submit)
+            page.views.clear()
+            page.views.append(
+                ft.View(
+                    "/nickname",
+                    controls=[
+                        ft.Text("채팅방 입장 전 닉네임을 입력하세요.", size=18),
+                        nickname_field,
+                        ft.ElevatedButton("입장", on_click=lambda e: on_nickname_submit(None))
+                    ],
+                    bgcolor=ft.Colors.WHITE
+                )
+            )
+            page.update()
+            return
+        else:
+            after_nickname(page.session.get("nickname"))
 
     # --- 라우팅 처리 ---
     def route_change(route):
