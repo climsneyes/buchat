@@ -5,4 +5,5 @@ qrcode
 Pillow
 geocoder
 sounddevice
-scipy 
+scipy
+flet-web 
