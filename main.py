@@ -37,6 +37,9 @@ from firebase_admin import credentials, db
 
 IS_SERVER = os.environ.get("CLOUDTYPE") == "1"  # Cloudtype 환경변수 등으로 구분
 
+# Cloudtype 배포 주소를 반드시 실제 주소로 바꿔주세요!
+BASE_URL = "https://port-0-buchat-m0t1itev3f2879ad.sel4.cloudtype.app"
+
 # --- Firebase 초기화 ---
 try:
     cred = credentials.Certificate(FIREBASE_KEY_PATH)
@@ -65,7 +68,8 @@ def main(page: ft.Page):
                 page.overlay.pop()
                 page.update()
 
-        qr_data = f"/join_room/{room_id}"
+        # QR코드에 전체 URL이 들어가도록 수정
+        qr_data = f"{BASE_URL}/join_room/{room_id}"
         qr = qrcode.QRCode(version=1, box_size=10, border=5)
         qr.add_data(qr_data)
         qr.make(fit=True)
