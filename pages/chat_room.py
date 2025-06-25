@@ -8,10 +8,6 @@ from firebase_admin import db
 
 IS_SERVER = os.environ.get("CLOUDTYPE") == "1"  # Cloudtype 환경변수 등으로 구분
 
-if not IS_SERVER:
-    import sounddevice as sd
-    from scipy.io.wavfile import write
-
 client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 # 언어 코드에 따른 전체 언어 이름 매핑
@@ -37,6 +33,12 @@ def translate_message(text, target_lang):
         return f"[번역 오류] {e}"
 
 def transcribe_from_mic(input_box: ft.TextField, page: ft.Page, mic_button: ft.IconButton):
+    if IS_SERVER:
+        input_box.hint_text = "서버에서는 음성 입력이 지원되지 않습니다."
+        page.update()
+        return
+    import sounddevice as sd
+    from scipy.io.wavfile import write
     samplerate = 44100  # Sample rate
     duration = 5  # seconds
     filename = "temp_recording.wav"
@@ -214,8 +216,11 @@ def ChatRoomPage(page, room_id, room_title, user_lang, target_lang, on_back=None
         hint_text="번역할 언어"
     )
 
-    mic_button = ft.IconButton(ft.Icons.MIC)
-    mic_button.on_click = lambda e: transcribe_from_mic(input_box, page, mic_button)
+    # 마이크 버튼 생성 및 UI에 추가 (서버 환경에서는 보이지 않게)
+    mic_button = None
+    if not IS_SERVER:
+        mic_button = ft.IconButton(ft.Icons.MIC)
+        mic_button.on_click = lambda e: transcribe_from_mic(input_box, page, mic_button)
 
     return ft.View(
         f"/chat/{room_id}",
@@ -241,7 +246,7 @@ def ChatRoomPage(page, room_id, room_title, user_lang, target_lang, on_back=None
                     ft.Row([
                         input_box,
                         ft.IconButton(ft.Icons.SEND, on_click=send_message, bgcolor=ft.Colors.BLUE_500, icon_color=ft.Colors.WHITE),
-                        # mic_button, # 마이크 버튼은 잠시 비활성화
+                        *( [mic_button] if mic_button else [] ),
                     ], spacing=8),
                     ft.Row([
                         target_lang_dd,
