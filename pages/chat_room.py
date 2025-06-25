@@ -107,15 +107,15 @@ def ChatRoomPage(page, room_id, room_title, user_lang, target_lang, on_back=None
             content=message_column,
             padding=12,
             border_radius=18,
-            max_width=page.width * 0.6, # 말풍선 최대 너비
-            bgcolor=ft.Colors.BLUE_500 if is_me else ft.Colors.GREY_300,
+            bgcolor=ft.Colors.BLUE_500 if is_me else ft.Colors.GREY_300,  # 본인: 파란색, 상대: 회색
             margin=ft.margin.only(top=5, bottom=5, left=5, right=5),
+            alignment=ft.alignment.center_right if is_me else ft.alignment.center_left,  # 본인: 오른쪽, 상대: 왼쪽
         )
 
         # 내가 보낸 메시지는 오른쪽, 상대 메시지는 왼쪽에 정렬
         return ft.Row(
             controls=[bubble],
-            alignment=ft.MainAxisAlignment.END if is_me else ft.MainAxisAlignment.START,
+            alignment=ft.MainAxisAlignment.END if is_me else ft.MainAxisAlignment.START,  # 본인: 오른쪽, 상대: 왼쪽
         )
 
     # --- Firebase 리스너 콜백 ---
@@ -260,3 +260,9 @@ def ChatRoomPage(page, room_id, room_title, user_lang, target_lang, on_back=None
         padding=0, # View 전체 패딩 제거
         bgcolor=ft.Colors.WHITE
     )
+
+# 환경변수에서 firebase_key.json 내용을 읽어서 파일로 저장
+firebase_key_json = os.getenv("FIREBASE_KEY_JSON")
+if firebase_key_json:
+    with open("firebase_key.json", "w", encoding="utf-8") as f:
+        f.write(firebase_key_json)
