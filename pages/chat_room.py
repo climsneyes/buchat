@@ -92,6 +92,7 @@ def ChatRoomPage(page, room_id, room_title, user_lang, target_lang, on_back=None
         """메시지 말풍선을 생성하는 함수"""
         message_column = ft.Column(
             [
+                ft.Text(msg_data.get('nickname', '익명'), size=12, color=ft.Colors.GREY_700),  # 닉네임 표시
                 ft.Text(msg_data['text'], color=ft.Colors.WHITE if is_me else ft.Colors.BLACK),
                 ft.Text(
                     f"({msg_data['translated']})" if msg_data.get('translated') else "",
@@ -173,7 +174,8 @@ def ChatRoomPage(page, room_id, room_title, user_lang, target_lang, on_back=None
 
         # Firebase에 메시지 저장
         new_message = {
-            'user_id': page.session.get("user_id"), # 임시 사용자 ID 사용
+            'user_id': page.session.get("user_id"),
+            'nickname': page.session.get("nickname"),  # 닉네임 추가
             'user_lang': user_lang,
             'text': msg_text,
             'translated': translated_text,
@@ -182,7 +184,7 @@ def ChatRoomPage(page, room_id, room_title, user_lang, target_lang, on_back=None
         try:
             messages_ref.push(new_message)
             input_box.value = ""
-            input_box.focus() # 메시지 전송 후 다시 포커스
+            input_box.focus()
             page.update()
         except Exception as ex:
             print(f"메시지 전송 실패: {ex}")
