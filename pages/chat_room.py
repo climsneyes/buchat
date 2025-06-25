@@ -203,9 +203,8 @@ def ChatRoomPage(page, room_id, room_title, user_lang, target_lang, on_back=None
         "en": "🇺🇸 English", "ko": "🇰🇷 한국어", "ja": "🇯🇵 日本語", "zh": "🇨🇳 中文",
         "fr": "🇫🇷 Français", "de": "🇩🇪 Deutsch", "th": "🇹🇭 ไทย", "vi": "🇻🇳 Tiếng Việt"
     }
-    available_langs = [
-        ft.dropdown.Option(code, name) for code, name in lang_options_map.items() if code != user_lang
-    ]
+    # 모든 경우에 본인 언어도 선택할 수 있도록 전체 언어 리스트를 사용
+    available_langs = [ft.dropdown.Option(code, name) for code, name in lang_options_map.items()]
 
     # 상대방 언어 선택 드롭다운
     target_lang_dd = ft.Dropdown(
