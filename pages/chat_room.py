@@ -278,8 +278,12 @@ def ChatRoomPage(page, room_id, room_title, user_lang, target_lang, on_back=None
             page.update()
             # UI 스레드에서 안전하게 스크롤 조정
             def set_scroll():
-                page.views[-1].scroll = ft.ScrollMode.ADAPTIVE
-                page.update()
+                try:
+                    if hasattr(page, 'views') and len(page.views) > 0:
+                        page.views[-1].scroll = ft.ScrollMode.ADAPTIVE
+                        page.update()
+                except Exception as e:
+                    print(f"스크롤 설정 중 오류: {e}")
             if hasattr(page, 'run_on_main'):
                 page.run_on_main(set_scroll)
             else:
@@ -307,8 +311,12 @@ def ChatRoomPage(page, room_id, room_title, user_lang, target_lang, on_back=None
         page.update()
         # UI 스레드에서 안전하게 스크롤 조정
         def set_scroll():
-            page.views[-1].scroll = ft.ScrollMode.ADAPTIVE
-            page.update()
+            try:
+                if hasattr(page, 'views') and len(page.views) > 0:
+                    page.views[-1].scroll = ft.ScrollMode.ADAPTIVE
+                    page.update()
+            except Exception as e:
+                print(f"스크롤 설정 중 오류: {e}")
         if hasattr(page, 'run_on_main'):
             page.run_on_main(set_scroll)
         else:
