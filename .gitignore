@@ -6,3 +6,15 @@ storage/temp/*
   __pycache__/
   *.pyc
 __pycache__/
+config.py
+firebase_key.json
+*.env
+storage/data/*
+storage/temp/*
+__pycache__/
+*.pyc
+chroma_db/
+cache_info.json
+vector_db*.pkl
+dist/
+pdf/ban.pdf

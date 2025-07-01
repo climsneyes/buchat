@@ -6,4 +6,10 @@ Pillow
 geocoder
 sounddevice
 scipy
-flet-web 
+flet-web
+pypdfloader
+langchain
+chromadb
+tiktoken
+sentence-transformers
+faiss-cpu 
