@@ -83,7 +83,35 @@ try:
         print("RAG 기능이 비활성화됩니다.")
 except Exception as e:
     print(f"벡터DB 로드 중 오류 발생: {e}")
-    print("RAG 기능이 비활성화됩니다.")
+    if "langchain" in str(e).lower():
+        print("langchain 의존성 오류로 인해 새로운 벡터DB를 생성합니다...")
+        try:
+            # 기존 벡터DB 파일 삭제
+            if os.path.exists(VECTOR_DB_MERGED_PATH):
+                os.remove(VECTOR_DB_MERGED_PATH)
+                print("기존 벡터DB 파일 삭제 완료")
+            
+            # 새로운 벡터DB 생성 (PDF 파일이 있는 경우)
+            if os.path.exists("pdf/ban.pdf"):
+                from rag_utils import get_or_create_vector_db
+                vector_db = get_or_create_vector_db(OPENAI_API_KEY)
+                if vector_db:
+                    # 새로운 벡터DB를 병합 파일로 저장
+                    with open(VECTOR_DB_MERGED_PATH, "wb") as f:
+                        pickle.dump(vector_db, f)
+                    print("새로운 벡터DB 생성 및 저장 완료!")
+                else:
+                    print("새로운 벡터DB 생성 실패!")
+                    vector_db = None
+            else:
+                print("PDF 파일이 없어 새로운 벡터DB를 생성할 수 없습니다.")
+                vector_db = None
+        except Exception as e2:
+            print(f"새로운 벡터DB 생성 실패: {e2}")
+            vector_db = None
+    else:
+        print("RAG 기능이 비활성화됩니다.")
+        vector_db = None
 
 # RAG 기능 사용 가능 여부 설정 (vector_db 정의 후)
 RAG_AVAILABLE = vector_db is not None

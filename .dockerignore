@@ -16,6 +16,8 @@ __pycache__/
 dist/
 # vector_db_merged.pkl은 반드시 포함
 !vector_db_merged.pkl 
+# PDF 파일도 포함
+!pdf/
 
 # 추가 제외 항목
 .git/
