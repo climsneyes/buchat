@@ -7,9 +7,5 @@ geocoder
 sounddevice
 scipy
 flet-web
-langchain
-chromadb
 tiktoken
-sentence-transformers
-faiss-cpu
 pypdf 

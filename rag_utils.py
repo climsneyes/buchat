@@ -4,11 +4,9 @@ import json
 import pickle
 import numpy as np
 import re
-from langchain_community.document_loaders import PyPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings
 import openai
 import shutil
+from pypdf import PdfReader
 
 PDF_PATH = "pdf/ban.pdf"
 VECTOR_DB_PATH = "vector_db.pkl"
@@ -246,17 +244,50 @@ def is_cache_valid():
     print(f"캐시가 유효합니다. (파일 해시: {current_hash[:8]}...)")
     return True
 
-# 1. PDF 청크 분할 함수
+# 1. PDF 청크 분할 함수 (pypdf 사용)
 def chunk_pdf_to_text_chunks(pdf_path, chunk_size=1000, chunk_overlap=100):
-    loader = PyPDFLoader(pdf_path)
-    pages = loader.load()
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=chunk_size,
-        chunk_overlap=chunk_overlap,
-        length_function=len,
-    )
-    chunks = text_splitter.split_documents(pages)
-    return chunks
+    """PDF를 텍스트 청크로 분할합니다."""
+    reader = PdfReader(pdf_path)
+    text_chunks = []
+    
+    for page_num, page in enumerate(reader.pages):
+        text = page.extract_text()
+        if not text.strip():
+            continue
+            
+        # 텍스트를 청크로 분할
+        words = text.split()
+        current_chunk = ""
+        chunks = []
+        
+        for word in words:
+            if len(current_chunk) + len(word) + 1 <= chunk_size:
+                current_chunk += (word + " ")
+            else:
+                if current_chunk:
+                    chunks.append(current_chunk.strip())
+                current_chunk = word + " "
+        
+        if current_chunk:
+            chunks.append(current_chunk.strip())
+        
+        # 청크 오버랩 처리
+        final_chunks = []
+        for i, chunk in enumerate(chunks):
+            if i > 0 and chunk_overlap > 0:
+                # 이전 청크의 끝 부분을 현재 청크 앞에 추가
+                overlap_text = chunks[i-1][-chunk_overlap:] if len(chunks[i-1]) > chunk_overlap else chunks[i-1]
+                chunk = overlap_text + " " + chunk
+            
+            # Document 객체 대신 딕셔너리 사용
+            final_chunks.append({
+                'page_content': chunk,
+                'metadata': {'page': page_num + 1}
+            })
+        
+        text_chunks.extend(final_chunks)
+    
+    return text_chunks
 
 # 간단한 벡터DB 클래스
 class SimpleVectorDB:
@@ -276,7 +307,7 @@ class SimpleVectorDB:
         
         # 코사인 유사도 계산
         similarities = []
-        for doc_embedding in self.embeddings.embed_documents([doc.page_content for doc in self.documents]):
+        for doc_embedding in self.embeddings.embed_documents([doc['page_content'] for doc in self.documents]):
             similarity = np.dot(query_embedding, doc_embedding) / (np.linalg.norm(query_embedding) * np.linalg.norm(doc_embedding))
             similarities.append(similarity)
         
@@ -293,6 +324,26 @@ class SimpleVectorDB:
     def __setstate__(self, state):
         # pickle 로드 시 임베딩 객체는 None으로 유지
         self.__dict__.update(state)
+
+# OpenAI 임베딩 클래스
+class OpenAIEmbeddings:
+    def __init__(self, openai_api_key, model="text-embedding-3-small"):
+        self.client = openai.OpenAI(api_key=openai_api_key)
+        self.model = model
+    
+    def embed_query(self, text):
+        response = self.client.embeddings.create(
+            model=self.model,
+            input=text
+        )
+        return response.data[0].embedding
+    
+    def embed_documents(self, texts):
+        response = self.client.embeddings.create(
+            model=self.model,
+            input=texts
+        )
+        return [data.embedding for data in response.data]
 
 # 2. 임베딩 및 벡터DB 저장/로드 함수
 def get_or_create_vector_db(openai_api_key):
@@ -342,7 +393,7 @@ def get_or_create_vector_db(openai_api_key):
     
     # 청크 미리보기 (처음 3개만)
     for i, chunk in enumerate(pdf_chunks[:3]):
-        print(f"--- 청크 {i+1} ---\n{chunk.page_content[:200]}\n")
+        print(f"--- 청크 {i+1} ---\n{chunk['page_content'][:200]}\n")
     
     print("OpenAI 임베딩 생성 시작...")
     embeddings = OpenAIEmbeddings(
@@ -352,7 +403,7 @@ def get_or_create_vector_db(openai_api_key):
     
     # 모든 문서의 임베딩을 미리 생성
     print("문서 임베딩 생성 중...")
-    doc_embeddings = embeddings.embed_documents([doc.page_content for doc in pdf_chunks])
+    doc_embeddings = embeddings.embed_documents([doc['page_content'] for doc in pdf_chunks])
     
     print("벡터DB 생성 중...")
     vector_db = SimpleVectorDB(pdf_chunks, embeddings, doc_embeddings)
@@ -462,7 +513,7 @@ def answer_with_rag(query, vector_db, openai_api_key, model=None):
 
     # 2단계: 컨텍스트 생성
     print(f"  - 2단계: 컨텍스트 생성")
-    context = "\n\n".join([doc.page_content for doc in relevant_chunks])
+    context = "\n\n".join([doc['page_content'] for doc in relevant_chunks])
     print(f"  - 컨텍스트 길이: {len(context)} 문자")
 
     # 3단계: 프롬프트 생성
@@ -526,7 +577,7 @@ def get_or_create_vector_db_multi(pdf_paths, openai_api_key):
         openai_api_key=openai_api_key,
         model="text-embedding-3-small"
     )
-    doc_embeddings = embeddings.embed_documents([doc.page_content for doc in all_chunks])
+    doc_embeddings = embeddings.embed_documents([doc['page_content'] for doc in all_chunks])
     vector_db = SimpleVectorDB(all_chunks, embeddings, doc_embeddings)
     with open("vector_db_multi.pkl", "wb") as f:
         pickle.dump(vector_db, f)
@@ -551,7 +602,7 @@ def merge_vector_dbs(db_paths, openai_api_key, save_path="vector_db_merged.pkl")
         openai_api_key=openai_api_key,
         model="text-embedding-3-small"
     )
-    doc_embeddings = embeddings.embed_documents([doc.page_content for doc in all_chunks])
+    doc_embeddings = embeddings.embed_documents([doc['page_content'] for doc in all_chunks])
     vector_db = SimpleVectorDB(all_chunks, embeddings, doc_embeddings)
     with open(save_path, "wb") as f:
         pickle.dump(vector_db, f)
@@ -600,7 +651,7 @@ if __name__ == "__main__":
         
         print("\n유사 청크 미리보기:")
         for i, doc in enumerate(docs):
-            print(f"--- 청크 {i+1} ---\n{doc.page_content[:300]}\n")
+            print(f"--- 청크 {i+1} ---\n{doc['page_content'][:300]}\n")
         
         print("OpenAI API로 답변 생성 중...")
         answer = answer_with_rag(query, vector_db, api_key)

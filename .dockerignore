@@ -16,3 +16,12 @@ __pycache__/
 dist/
 # vector_db_merged.pkl은 반드시 포함(주석처리)
 # !vector_db_merged.pkl 
+
+# 추가 제외 항목
+.git/
+.gitignore
+README_CACHE.md
+firebase_key.json.example
+config.example.py
+cache_manager.py
+cache_info.json 
