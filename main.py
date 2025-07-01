@@ -65,15 +65,48 @@ client = openai.OpenAI(api_key=OPENAI_API_KEY)
 # RAG용 벡터DB 준비 (무조건 병합본만 사용)
 print("RAG 벡터DB 준비 중...")
 VECTOR_DB_MERGED_PATH = "vector_db_merged.pkl"
-if not os.path.exists(VECTOR_DB_MERGED_PATH):
-    raise FileNotFoundError("vector_db_merged.pkl 파일이 존재하지 않습니다. rag_utils.py에서 병합 작업을 먼저 실행하세요.")
-with open(VECTOR_DB_MERGED_PATH, "rb") as f:
-    vector_db = pickle.load(f)
-vector_db.embeddings = OpenAIEmbeddings(
-    openai_api_key=OPENAI_API_KEY,
-    model="text-embedding-3-small"
-)
-print("병합 벡터DB 로드 완료!")
+vector_db = None
+
+try:
+    if os.path.exists(VECTOR_DB_MERGED_PATH):
+        print("기존 벡터DB 파일을 로드합니다...")
+        with open(VECTOR_DB_MERGED_PATH, "rb") as f:
+            vector_db = pickle.load(f)
+        # 임베딩 객체 다시 생성
+        vector_db.embeddings = OpenAIEmbeddings(
+            openai_api_key=OPENAI_API_KEY,
+            model="text-embedding-3-small"
+        )
+        print("기존 병합 벡터DB 로드 완료!")
+    else:
+        print("벡터DB 파일이 없습니다. 새로 생성합니다...")
+        # PDF 파일이 있는지 확인
+        if os.path.exists("pdf/ban.pdf"):
+            vector_db = get_or_create_vector_db(OPENAI_API_KEY)
+            if vector_db:
+                print("새로운 벡터DB 생성 완료!")
+            else:
+                print("벡터DB 생성 실패!")
+        else:
+            print("PDF 파일이 없어 벡터DB를 생성할 수 없습니다.")
+            print("RAG 기능이 비활성화됩니다.")
+except Exception as e:
+    print(f"벡터DB 로드 중 오류 발생: {e}")
+    print("새로운 벡터DB를 생성합니다...")
+    try:
+        if os.path.exists("pdf/ban.pdf"):
+            vector_db = get_or_create_vector_db(OPENAI_API_KEY)
+            if vector_db:
+                print("새로운 벡터DB 생성 완료!")
+            else:
+                print("벡터DB 생성 실패!")
+        else:
+            print("PDF 파일이 없어 벡터DB를 생성할 수 없습니다.")
+            print("RAG 기능이 비활성화됩니다.")
+    except Exception as e2:
+        print(f"벡터DB 생성 실패: {e2}")
+        print("RAG 기능이 비활성화됩니다.")
+
 print("RAG 벡터DB 준비 완료!")
 
 FIND_ROOM_TEXTS = {
@@ -383,6 +416,8 @@ def main(page: ft.Page):
             if is_rag:
                 def rag_translate_message(text, target_lang):
                     # RAG 답변만 반환 (번역 X)
+                    if vector_db is None:
+                        return "죄송합니다. RAG 기능이 현재 사용할 수 없습니다. (벡터DB가 로드되지 않았습니다.)"
                     return answer_with_rag(text, vector_db, OPENAI_API_KEY)
                 
                 page.views.append(ChatRoomPage(
