@@ -57,69 +57,62 @@ def detect_language(text):
 
 # 언어별 프롬프트 템플릿
 LANGUAGE_PROMPTS = {
-    'ko': """아래 참고 정보에서 답변의 근거가 되는 문장(또는 문단)을 반드시 '원문 그대로 인용'해서 답변하세요. 요약, 의역, 추가 설명 없이 참고 정보의 문장(또는 문단)을 그대로 복사해서 답변하세요. 참고 정보에 없는 내용은 '참고 정보에 없습니다'라고 답하세요.
+    'ko': '''아래 참고 정보에서 답변의 근거가 되는 문장(또는 문단)을 반드시 포함하되, 필요하다면 자연스럽게 이어지도록 문장을 다듬어서 답변하세요. 참고 정보에 없는 내용은 '참고 정보에 없습니다'라고 답하세요.
 
 [참고 정보]
 {context}
 
 질문: {query}
-답변:""",
-    
-    'en': """Please answer by 'directly quoting' the relevant sentence(s) or paragraph(s) from the reference information below. Do NOT summarize, paraphrase, or add extra explanation. Just copy the original sentence(s) or paragraph(s) as is. If the information is not in the reference, answer 'Information not found in the reference.'
+답변:''',
+    'en': '''Please answer by including the relevant sentence(s) or paragraph(s) from the reference information below, but you may rephrase or connect them naturally for a smooth answer. If the information is not in the reference, answer 'Information not found in the reference.'
 
 [Reference Information]
 {context}
 
 Question: {query}
-Answer:""",
-    
-    'ja': """以下の参考情報から、回答の根拠となる文や段落を必ず『原文のまま引用』して答えてください。要約・意訳・追加説明はせず、参考情報の文や段落をそのままコピーして答えてください。参考情報にない内容は「参考情報にありません」と答えてください。
+Answer:''',
+    'ja': '''以下の参考情報から、回答の根拠となる文や段落を必ず含めつつ、必要に応じて自然な文章になるように繋げて答えてください。参考情報にない内容は「参考情報にありません」と答えてください。
 
 [参考情報]
 {context}
 
 質問: {query}
-回答:""",
-    
-    'zh': """请务必从以下参考信息中'原文引用'相关句子或段落进行回答。不要总结、意译或添加额外说明，只需原样复制参考信息中的句子或段落。如果参考信息中没有相关内容，请回答"参考信息中没有"。
+回答:''',
+    'zh': '''请务必在下方参考信息中包含相关句子或段落进行回答，如有需要可适当润色使回答更自然。如果参考信息中没有相关内容，请回答"参考信息中没有"。
 
 [参考信息]
 {context}
 
 问题: {query}
-回答:""",
-    
-    'vi': """Vui lòng trả lời bằng cách 'trích dẫn nguyên văn' câu hoặc đoạn liên quan từ thông tin tham khảo dưới đây. Không tóm tắt, diễn giải hoặc thêm giải thích. Chỉ cần sao chép nguyên văn câu hoặc đoạn từ tài liệu tham khảo. Nếu không có thông tin, hãy trả lời 'Không tìm thấy thông tin trong tài liệu tham khảo.'
+回答:''',
+    'vi': '''Vui lòng trả lời bằng cách bao gồm câu hoặc đoạn liên quan từ thông tin tham khảo dưới đây, có thể diễn đạt lại cho tự nhiên hơn nếu cần. Nếu không có thông tin, hãy trả lời 'Không tìm thấy thông tin trong tài liệu tham khảo.'
 
 [Thông tin tham khảo]
 {context}
 
 Câu hỏi: {query}
-Trả lời:""",
-    
-    'fr': """Veuillez répondre en 'citant textuellement' la ou les phrases ou paragraphes pertinents des informations de référence ci-dessous. Ne résumez pas, ne paraphrasez pas et n'ajoutez pas d'explications supplémentaires. Copiez simplement la ou les phrases ou paragraphes originaux tels quels. Si l'information ne se trouve pas dans la référence, répondez 'Information non trouvée dans la référence.'
+Trả lời:''',
+    'fr': '''Veuillez répondre en incluant la ou les phrases ou paragraphes pertinents des informations de référence ci-dessous, mais vous pouvez reformuler ou relier les phrases pour une réponse plus naturelle. Si l'information ne se trouve pas dans la référence, répondez 'Information non trouvée dans la référence.'
 
 [Informations de référence]
 {context}
 
 Question: {query}
-Réponse:""",
-    
-    'de': """Bitte antworten Sie, indem Sie den/die relevanten Satz/Sätze oder Absatz/Absätze aus den folgenden Referenzinformationen 'wortwörtlich zitieren'. Fassen Sie nicht zusammen, paraphrasieren Sie nicht und fügen Sie keine zusätzlichen Erklärungen hinzu. Kopieren Sie einfach den Originalsatz oder Absatz. Wenn die Information nicht in der Referenz steht, antworten Sie bitte 'Information nicht in der Referenz gefunden.'
+Réponse:''',
+    'de': '''Bitte beantworten Sie die Frage, indem Sie die relevanten Sätze oder Absätze aus den folgenden Referenzinformationen einbeziehen. Sie können diese für eine natürlichere Antwort umformulieren oder verbinden. Wenn die Information nicht in der Referenz steht, antworten Sie bitte 'Information nicht in der Referenz gefunden.'
 
 [Referenzinformationen]
 {context}
 
 Frage: {query}
-Antwort:""",
-    
-    'th': """กรุณาตอบโดย 'คัดลอกข้อความต้นฉบับ' ประโยคหรือย่อหน้าที่เกี่ยวข้องจากข้อมูลอ้างอิงด้านล่าง ห้ามสรุปความ แปลความ หรืออธิบายเพิ่มเติม ให้คัดลอกข้อความต้นฉบับเท่านั้น หากไม่มีข้อมูลในเอกสารอ้างอิง กรุณาตอบว่า 'ไม่พบข้อมูลในเอกสารอ้างอิง'
+Antwort:''',
+    'th': '''กรุณาตอบโดยรวมประโยคหรือย่อหน้าที่เกี่ยวข้องจากข้อมูลอ้างอิงด้านล่าง และสามารถปรับแต่งให้เป็นธรรมชาติได้ หากไม่มีข้อมูลในเอกสารอ้างอิง กรุณาตอบว่า 'ไม่พบข้อมูลในเอกสารอ้างอิง'
 
 [ข้อมูลอ้างอิง]
 {context}
 
 คำถาม: {query}
-คำตอบ:"""
+คำตอบ:'''
 }
 
 # 언어별 오류 메시지
