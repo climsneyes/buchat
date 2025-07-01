@@ -225,7 +225,90 @@ def ChatRoomPage(page, room_id, room_title, user_lang, target_lang, on_back=None
                 ],
                 "input_hint": "下に質問を入力してください！ 💬"
             },
-            # 필요시 추가 언어...
+            "zh": {
+                "title": "多文化家庭韩国生活指南",
+                "info": "您可以咨询以下信息：",
+                "items": [
+                    "🏥 医院、药房使用方法",
+                    "🏦 银行、邮局、政府机关利用",
+                    "🚌 交通工具使用（公交车、地铁、火车）",
+                    "🚗 驾驶证、私家车、出租车",
+                    "🏠 找房子",
+                    "📱 手机使用",
+                    "🗑️ 垃圾分类（按量收费、分类回收）",
+                    "🆔 外国人登记证申请、居留期限延长"
+                ],
+                "example_title": "问题示例：",
+                "examples": [
+                    "• 怎么去医院？",
+                    "• 垃圾怎么扔？",
+                    "• 在哪里申请外国人登记证？"
+                ],
+                "input_hint": "请在下方输入您的问题！💬"
+            },
+            "fr": {
+                "title": "Guide de la vie en Corée pour les familles multiculturelles",
+                "info": "Vous pouvez poser des questions sur les sujets suivants :",
+                "items": [
+                    "🏥 Comment utiliser les hôpitaux et pharmacies",
+                    "🏦 Comment utiliser les banques, bureaux de poste, services gouvernementaux",
+                    "🚌 Comment utiliser les transports publics (bus, métro, train)",
+                    "🚗 Permis de conduire, voiture privée, taxi",
+                    "🏠 Trouver un logement",
+                    "📱 Utiliser un téléphone portable",
+                    "🗑️ Comment jeter les déchets (tarification au volume, tri)",
+                    "🆔 Enregistrement des étrangers, prolongation du séjour"
+                ],
+                "example_title": "Exemples de questions :",
+                "examples": [
+                    "• Comment aller à l'hôpital ?",
+                    "• Comment jeter les déchets ?",
+                    "• Où puis-je demander une carte d'enregistrement des étrangers ?"
+                ],
+                "input_hint": "Tapez votre question ci-dessous ! 💬"
+            },
+            "de": {
+                "title": "Koreanischer Lebensratgeber für multikulturelle Familien",
+                "info": "Sie können Fragen zu folgenden Themen stellen:",
+                "items": [
+                    "🏥 Wie man Krankenhäuser und Apotheken nutzt",
+                    "🏦 Wie man Banken, Postämter, Behörden nutzt",
+                    "🚌 Wie man öffentliche Verkehrsmittel nutzt (Bus, U-Bahn, Zug)",
+                    "🚗 Führerschein, Privatwagen, Taxi",
+                    "🏠 Wohnungssuche",
+                    "📱 Mobiltelefon nutzen",
+                    "🗑️ Wie man Müll entsorgt (volumenbasiert, Recycling)",
+                    "🆔 Ausländerregistrierung, Aufenthaltsverlängerung"
+                ],
+                "example_title": "Beispielfragen:",
+                "examples": [
+                    "• Wie komme ich ins Krankenhaus?",
+                    "• Wie entsorge ich Müll?",
+                    "• Wo kann ich eine Ausländerregistrierungskarte beantragen?"
+                ],
+                "input_hint": "Geben Sie Ihre Frage unten ein! 💬"
+            },
+            "th": {
+                "title": "คู่มือการใช้ชีวิตในเกาหลีสำหรับครอบครัวพหุวัฒนธรรม",
+                "info": "คุณสามารถถามเกี่ยวกับข้อมูลต่อไปนี้:",
+                "items": [
+                    "🏥 วิธีการใช้โรงพยาบาลและร้านขายยา",
+                    "🏦 วิธีการใช้ธนาคาร ไปรษณีย์ หน่วยงานราชการ",
+                    "🚌 วิธีการใช้ขนส่งสาธารณะ (รถเมล์ รถไฟใต้ดิน รถไฟ)",
+                    "🚗 ใบขับขี่ รถส่วนตัว แท็กซี่",
+                    "🏠 การหาบ้าน",
+                    "📱 การใช้โทรศัพท์มือถือ",
+                    "🗑️ วิธีการทิ้งขยะ (คิดตามปริมาณ แยกประเภท)",
+                    "🆔 การลงทะเบียนชาวต่างชาติ การต่ออายุการพำนัก"
+                ],
+                "example_title": "ตัวอย่างคำถาม:",
+                "examples": [
+                    "• ไปโรงพยาบาลได้อย่างไร?",
+                    "• ทิ้งขยะอย่างไร?",
+                    "• สมัครบัตรลงทะเบียนชาวต่างชาติได้ที่ไหน?"
+                ],
+                "input_hint": "กรอกคำถามของคุณด้านล่าง! 💬"
+            }
         }
         # 현재 언어 가져오기 (없으면 ko)
         current_lang = user_lang if user_lang in RAG_GUIDE_TEXTS else "ko"
