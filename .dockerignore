@@ -1,0 +1,18 @@
+# 대용량/불필요 파일/폴더 제외
+pdf/
+chroma_db/
+storage/data/
+storage/temp/
+vector_db.pkl
+vector_db_multi.pkl
+vector_db_49multi.pkl
+vector_db_64multi.pkl
+*.pdf
+*.db
+*.sqlite3
+__pycache__/
+*.pyc
+.cache/
+dist/
+# vector_db_merged.pkl은 반드시 포함(주석처리)
+# !vector_db_merged.pkl 
