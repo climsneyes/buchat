@@ -213,6 +213,15 @@ FIND_ROOM_TEXTS = {
 }
 
 def main(page: ft.Page):
+    # 구글 폰트 링크 및 CSS 추가 (웹 환경에서 특수문자 깨짐 방지)
+    page.html = """
+    <link href='https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap' rel='stylesheet'>
+    <style>
+      body, * {
+        font-family: 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', Arial, sans-serif !important;
+      }
+    </style>
+    """
     page.font_family = "Noto Sans KR, Malgun Gothic, Apple SD Gothic Neo, Arial, sans-serif"
     print("앱 시작(main 함수 진입)")
     lang = "ko"
