@@ -1,5 +1,6 @@
 import os
 import pickle
+import shutil
 
 # 환경변수에서 firebase_key.json 내용을 읽어서 파일로 저장
 firebase_key_json = os.getenv("FIREBASE_KEY_JSON")
@@ -89,7 +90,6 @@ except Exception as e:
             # 기존 벡터DB 파일을 백업
             backup_path = VECTOR_DB_MERGED_PATH + ".backup"
             if os.path.exists(VECTOR_DB_MERGED_PATH):
-                import shutil
                 shutil.copy2(VECTOR_DB_MERGED_PATH, backup_path)
                 print(f"기존 벡터DB 백업 완료: {backup_path}")
             
@@ -213,6 +213,7 @@ FIND_ROOM_TEXTS = {
 }
 
 def main(page: ft.Page):
+    page.font_family = "Noto Sans KR, Malgun Gothic, Apple SD Gothic Neo, Arial, sans-serif"
     print("앱 시작(main 함수 진입)")
     lang = "ko"
     country = None
