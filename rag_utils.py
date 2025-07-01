@@ -347,16 +347,16 @@ class OpenAIEmbeddings:
 
 # 2. 임베딩 및 벡터DB 저장/로드 함수
 def get_or_create_vector_db(openai_api_key):
-    # PDF 파일 존재 확인
-    print(f"PDF 파일 확인: {PDF_PATH}")
-    if not os.path.exists(PDF_PATH):
-        print(f"❌ PDF 파일이 존재하지 않습니다: {PDF_PATH}")
+    # 벡터DB 파일 존재 확인
+    print(f"벡터DB 파일 확인: {VECTOR_DB_PATH}")
+    if not os.path.exists(VECTOR_DB_PATH):
+        print(f"❌ 벡터DB 파일이 존재하지 않습니다: {VECTOR_DB_PATH}")
         print(f"현재 작업 디렉토리: {os.getcwd()}")
-        print(f"PDF 파일 절대 경로: {os.path.abspath(PDF_PATH)}")
+        print(f"벡터DB 파일 절대 경로: {os.path.abspath(VECTOR_DB_PATH)}")
         return None
     
-    print(f"✅ PDF 파일 확인됨: {os.path.abspath(PDF_PATH)}")
-    print(f"PDF 파일 크기: {os.path.getsize(PDF_PATH)} bytes")
+    print(f"✅ 벡터DB 파일 확인됨: {os.path.abspath(VECTOR_DB_PATH)}")
+    print(f"벡터DB 파일 크기: {os.path.getsize(VECTOR_DB_PATH)} bytes")
     
     # 캐시 유효성 검사
     if is_cache_valid():
@@ -425,9 +425,6 @@ def get_or_create_vector_db(openai_api_key):
 # 캐시 관리 유틸리티 함수들
 def get_cache_status():
     """현재 캐시 상태를 반환합니다."""
-    if not os.path.exists(PDF_PATH):
-        return {"status": "error", "message": "PDF 파일이 존재하지 않습니다."}
-    
     if not os.path.exists(VECTOR_DB_PATH):
         return {"status": "not_exists", "message": "벡터DB가 존재하지 않습니다."}
     

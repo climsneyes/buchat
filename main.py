@@ -47,6 +47,7 @@ BASE_URL = "https://port-0-buchat-m0t1itev3f2879ad.sel4.cloudtype.app"
 # RAG 채팅방 상수
 RAG_ROOM_ID = "rag_korean_guide"
 RAG_ROOM_TITLE = "다문화가족 한국생활안내"
+RAG_AVAILABLE = vector_db is not None  # RAG 기능 사용 가능 여부
 
 # --- Firebase 초기화 ---
 try:
@@ -79,33 +80,11 @@ try:
         )
         print("기존 병합 벡터DB 로드 완료!")
     else:
-        print("벡터DB 파일이 없습니다. 새로 생성합니다...")
-        # PDF 파일이 있는지 확인
-        if os.path.exists("pdf/ban.pdf"):
-            vector_db = get_or_create_vector_db(OPENAI_API_KEY)
-            if vector_db:
-                print("새로운 벡터DB 생성 완료!")
-            else:
-                print("벡터DB 생성 실패!")
-        else:
-            print("PDF 파일이 없어 벡터DB를 생성할 수 없습니다.")
-            print("RAG 기능이 비활성화됩니다.")
+        print("벡터DB 파일이 없습니다.")
+        print("RAG 기능이 비활성화됩니다.")
 except Exception as e:
     print(f"벡터DB 로드 중 오류 발생: {e}")
-    print("새로운 벡터DB를 생성합니다...")
-    try:
-        if os.path.exists("pdf/ban.pdf"):
-            vector_db = get_or_create_vector_db(OPENAI_API_KEY)
-            if vector_db:
-                print("새로운 벡터DB 생성 완료!")
-            else:
-                print("벡터DB 생성 실패!")
-        else:
-            print("PDF 파일이 없어 벡터DB를 생성할 수 없습니다.")
-            print("RAG 기능이 비활성화됩니다.")
-    except Exception as e2:
-        print(f"벡터DB 생성 실패: {e2}")
-        print("RAG 기능이 비활성화됩니다.")
+    print("RAG 기능이 비활성화됩니다.")
 
 print("RAG 벡터DB 준비 완료!")
 
@@ -302,7 +281,7 @@ def main(page: ft.Page):
                     ft.Text(texts["title"], size=22, weight=ft.FontWeight.BOLD),
                     ft.ElevatedButton(texts["id"], on_click=on_find_by_id, width=300),
                     ft.ElevatedButton(texts["qr"], on_click=on_find_by_qr, width=300),
-                    ft.ElevatedButton(texts["rag"], on_click=lambda e: go_chat(lang, lang, user_rag_room_id, RAG_ROOM_TITLE, is_rag=True), width=300),
+                    *( [ft.ElevatedButton(texts["rag"], on_click=lambda e: go_chat(lang, lang, user_rag_room_id, RAG_ROOM_TITLE, is_rag=True), width=300)] if RAG_AVAILABLE else [] ),
                     ft.ElevatedButton(texts["back"], on_click=lambda e: go_home(lang), width=300)
                 ],
                 bgcolor=ft.Colors.WHITE,
