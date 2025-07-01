@@ -651,11 +651,16 @@ def ChatRoomPage(page, room_id, room_title, user_lang, target_lang, on_back=None
                 height=50,
             ),
             ft.Divider(height=1),
+            # 채팅 메시지 영역(안내 메시지 포함) - 스크롤 영역
             ft.Container(
-                content=chat_messages,
+                content=ft.Column([
+                    chat_messages
+                ], expand=True),
                 expand=True, # Column이 확장되도록 설정
                 padding=ft.padding.symmetric(horizontal=15),
+                bgcolor=ft.Colors.WHITE,
             ),
+            # 입력창은 항상 하단에 고정
             ft.Container(
                 content=ft.Column([
                     ft.Row([
@@ -666,7 +671,8 @@ def ChatRoomPage(page, room_id, room_title, user_lang, target_lang, on_back=None
                     ft.Row(row_controls, alignment=ft.MainAxisAlignment.END, spacing=10)
                 ], spacing=10),
                 padding=ft.padding.all(15),
-                border=ft.border.only(top=ft.border.BorderSide(1, ft.Colors.GREY_300))
+                border=ft.border.only(top=ft.border.BorderSide(1, ft.Colors.GREY_300)),
+                bgcolor=ft.Colors.GREY_50
             )
         ],
         padding=0, # View 전체 패딩 제거
