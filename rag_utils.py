@@ -305,9 +305,25 @@ class SimpleVectorDB:
         # 쿼리 임베딩 생성
         query_embedding = self.embeddings.embed_query(query)
         
+        # 문서 텍스트 추출 (다양한 형식 지원)
+        doc_texts = []
+        for doc in self.documents:
+            if isinstance(doc, dict) and 'page_content' in doc:
+                # 딕셔너리 형식
+                doc_texts.append(doc['page_content'])
+            elif hasattr(doc, 'page_content'):
+                # Document 객체 형식
+                doc_texts.append(doc.page_content)
+            elif isinstance(doc, str):
+                # 문자열 형식
+                doc_texts.append(doc)
+            else:
+                # 기타 형식은 문자열로 변환
+                doc_texts.append(str(doc))
+        
         # 코사인 유사도 계산
         similarities = []
-        for doc_embedding in self.embeddings.embed_documents([doc['page_content'] for doc in self.documents]):
+        for doc_embedding in self.embeddings.embed_documents(doc_texts):
             similarity = np.dot(query_embedding, doc_embedding) / (np.linalg.norm(query_embedding) * np.linalg.norm(doc_embedding))
             similarities.append(similarity)
         
@@ -365,10 +381,10 @@ def get_or_create_vector_db(openai_api_key):
             with open(VECTOR_DB_PATH, 'rb') as f:
                 vector_db = pickle.load(f)
             # 임베딩 객체 다시 생성 (절대 변경 불가)
-        embeddings = OpenAIEmbeddings(
-            openai_api_key=openai_api_key,
-            model="text-embedding-3-small"
-        )
+            embeddings = OpenAIEmbeddings(
+                openai_api_key=openai_api_key,
+                model="text-embedding-3-small"
+            )
             vector_db.embeddings = embeddings
             cache_info = load_cache_info()
             print(f"벡터DB 로드 완료 (청크 수: {cache_info.get('chunk_count', '알 수 없음')})")
@@ -396,10 +412,10 @@ def get_or_create_vector_db(openai_api_key):
         print(f"--- 청크 {i+1} ---\n{chunk['page_content'][:200]}\n")
     
     print("OpenAI 임베딩 생성 시작...")
-        embeddings = OpenAIEmbeddings(
-            openai_api_key=openai_api_key,
-            model="text-embedding-3-small"
-        )
+    embeddings = OpenAIEmbeddings(
+        openai_api_key=openai_api_key,
+        model="text-embedding-3-small"
+    )
     
     # 모든 문서의 임베딩을 미리 생성
     print("문서 임베딩 생성 중...")
@@ -465,9 +481,9 @@ def clear_cache():
 def retrieve_relevant_chunks(query, vector_db, k=3):
     print(f"  - 유사 청크 검색 시작 (k={k})")
     try:
-    docs = vector_db.similarity_search(query, k=k)
+        docs = vector_db.similarity_search(query, k=k)
         print(f"  - 유사 청크 검색 완료: {len(docs)}개 찾음")
-    return docs
+        return docs
     except Exception as e:
         print(f"  - ❌ 유사 청크 검색 실패: {e}")
         return []
@@ -510,7 +526,22 @@ def answer_with_rag(query, vector_db, openai_api_key, model=None):
 
     # 2단계: 컨텍스트 생성
     print(f"  - 2단계: 컨텍스트 생성")
-    context = "\n\n".join([doc['page_content'] for doc in relevant_chunks])
+    context_parts = []
+    for doc in relevant_chunks:
+        if isinstance(doc, dict) and 'page_content' in doc:
+            # 딕셔너리 형식
+            context_parts.append(doc['page_content'])
+        elif hasattr(doc, 'page_content'):
+            # Document 객체 형식
+            context_parts.append(doc.page_content)
+        elif isinstance(doc, str):
+            # 문자열 형식
+            context_parts.append(doc)
+        else:
+            # 기타 형식은 문자열로 변환
+            context_parts.append(str(doc))
+    
+    context = "\n\n".join(context_parts)
     print(f"  - 컨텍스트 길이: {len(context)} 문자")
 
     # 3단계: 프롬프트 생성
@@ -521,11 +552,11 @@ def answer_with_rag(query, vector_db, openai_api_key, model=None):
     # 4단계: OpenAI API 호출
     print(f"  - 4단계: OpenAI API 호출 (모델: {model})")
     try:
-    client = openai.OpenAI(api_key=openai_api_key)
+        client = openai.OpenAI(api_key=openai_api_key)
         print(f"  - OpenAI 클라이언트 생성 완료")
 
-    response = client.chat.completions.create(
-        model=model,
+        response = client.chat.completions.create(
+            model=model,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=1000,
             temperature=0.1
