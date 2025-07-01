@@ -5,6 +5,7 @@ import os
 from flet import Column, Switch
 import time
 from firebase_admin import db
+import uuid
 
 IS_SERVER = os.environ.get("CLOUDTYPE") == "1"  # Cloudtype 환경변수 등으로 구분
 
@@ -528,9 +529,9 @@ def ChatRoomPage(page, room_id, room_title, user_lang, target_lang, on_back=None
     # --- Firebase 리스너 설정 ---
     messages_ref = db.reference(f'/messages/{room_id}')
     
-    # 페이지가 로드될 때 사용자 ID를 세션에 저장 (임시)
+    # 페이지가 로드될 때 사용자 ID를 세션에 저장 (UUID 사용)
     if not page.session.get("user_id"):
-        page.session.set("user_id", str(time.time_ns()))
+        page.session.set("user_id", str(uuid.uuid4()))
         page.update()
 
     # --- 이벤트 핸들러 ---

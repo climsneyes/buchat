@@ -342,13 +342,12 @@ def main(page: ft.Page):
             go_find_by_qr(lang)
         texts = FIND_ROOM_TEXTS.get(lang, FIND_ROOM_TEXTS["ko"])
         page.views.clear()
-        # 사용자별 고유 RAG 방 ID 생성
+        # 사용자별 고유 RAG 방 ID 생성 (UUID 사용)
         user_id = page.session.get("user_id")
         if not user_id:
-            import time
-            user_id = str(time.time_ns())
+            user_id = str(uuid.uuid4())
             page.session.set("user_id", user_id)
-        user_rag_room_id = f"rag_korean_guide_{user_id}"
+        user_rag_room_id = f"{RAG_ROOM_ID}_{user_id}"
         page.views.append(
             ft.View(
                 "/find_room_method",
@@ -438,8 +437,7 @@ def main(page: ft.Page):
         if room_id == RAG_ROOM_ID or room_id.startswith(RAG_ROOM_ID):
             user_id = page.session.get("user_id")
             if not user_id:
-                import time
-                user_id = str(time.time_ns())
+                user_id = str(uuid.uuid4())
                 page.session.set("user_id", user_id)
             user_rag_room_id = f"{RAG_ROOM_ID}_{user_id}"
             go_chat(lang, lang, user_rag_room_id, RAG_ROOM_TITLE, is_rag=True)
