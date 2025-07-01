@@ -84,30 +84,65 @@ try:
 except Exception as e:
     print(f"벡터DB 로드 중 오류 발생: {e}")
     if "langchain" in str(e).lower():
-        print("langchain 의존성 오류로 인해 새로운 벡터DB를 생성합니다...")
+        print("langchain 의존성 오류로 인해 기존 벡터DB를 변환합니다...")
         try:
-            # 기존 벡터DB 파일 삭제
+            # 기존 벡터DB 파일을 백업
+            backup_path = VECTOR_DB_MERGED_PATH + ".backup"
             if os.path.exists(VECTOR_DB_MERGED_PATH):
-                os.remove(VECTOR_DB_MERGED_PATH)
-                print("기존 벡터DB 파일 삭제 완료")
+                import shutil
+                shutil.copy2(VECTOR_DB_MERGED_PATH, backup_path)
+                print(f"기존 벡터DB 백업 완료: {backup_path}")
             
-            # 새로운 벡터DB 생성 (PDF 파일이 있는 경우)
-            if os.path.exists("pdf/ban.pdf"):
-                from rag_utils import get_or_create_vector_db
-                vector_db = get_or_create_vector_db(OPENAI_API_KEY)
-                if vector_db:
-                    # 새로운 벡터DB를 병합 파일로 저장
-                    with open(VECTOR_DB_MERGED_PATH, "wb") as f:
-                        pickle.dump(vector_db, f)
-                    print("새로운 벡터DB 생성 및 저장 완료!")
-                else:
-                    print("새로운 벡터DB 생성 실패!")
-                    vector_db = None
+            # 기존 벡터DB에서 데이터 추출
+            with open(VECTOR_DB_MERGED_PATH, 'rb') as f:
+                old_db = pickle.load(f)
+            
+            print("기존 벡터DB에서 데이터 추출 중...")
+            
+            # 기존 벡터DB에서 문서 추출
+            documents = []
+            if hasattr(old_db, 'documents'):
+                documents = old_db.documents
+                print(f"기존 문서 수: {len(documents)}")
+            elif hasattr(old_db, 'docstore') and hasattr(old_db.docstore, '_dict'):
+                # ChromaDB 형식에서 문서 추출
+                for doc_id, doc in old_db.docstore._dict.items():
+                    if hasattr(doc, 'page_content') and hasattr(doc, 'metadata'):
+                        documents.append({
+                            'page_content': doc.page_content,
+                            'metadata': doc.metadata
+                        })
+                print(f"추출된 문서 수: {len(documents)}")
+            
+            if documents:
+                # 새로운 임베딩 생성
+                from rag_utils import SimpleVectorDB
+                embeddings = OpenAIEmbeddings(
+                    openai_api_key=OPENAI_API_KEY,
+                    model="text-embedding-3-small"
+                )
+                
+                # 문서 임베딩 생성
+                print("새로운 임베딩 생성 중...")
+                doc_embeddings = embeddings.embed_documents([doc['page_content'] for doc in documents])
+                
+                # SimpleVectorDB 생성
+                vector_db = SimpleVectorDB(documents, embeddings, doc_embeddings)
+                
+                # 새로운 벡터DB 저장
+                with open(VECTOR_DB_MERGED_PATH, "wb") as f:
+                    pickle.dump(vector_db, f)
+                
+                # 변환 완료 표시
+                with open(VECTOR_DB_MERGED_PATH + ".converted", "w") as f:
+                    f.write("converted")
+                print("벡터DB 변환 완료!")
             else:
-                print("PDF 파일이 없어 새로운 벡터DB를 생성할 수 없습니다.")
+                print("추출할 문서가 없습니다.")
                 vector_db = None
+                
         except Exception as e2:
-            print(f"새로운 벡터DB 생성 실패: {e2}")
+            print(f"벡터DB 변환 실패: {e2}")
             vector_db = None
     else:
         print("RAG 기능이 비활성화됩니다.")
