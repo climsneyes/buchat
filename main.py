@@ -47,7 +47,6 @@ BASE_URL = "https://port-0-buchat-m0t1itev3f2879ad.sel4.cloudtype.app"
 # RAG 채팅방 상수
 RAG_ROOM_ID = "rag_korean_guide"
 RAG_ROOM_TITLE = "다문화가족 한국생활안내"
-RAG_AVAILABLE = vector_db is not None  # RAG 기능 사용 가능 여부
 
 # --- Firebase 초기화 ---
 try:
@@ -85,6 +84,9 @@ try:
 except Exception as e:
     print(f"벡터DB 로드 중 오류 발생: {e}")
     print("RAG 기능이 비활성화됩니다.")
+
+# RAG 기능 사용 가능 여부 설정 (vector_db 정의 후)
+RAG_AVAILABLE = vector_db is not None
 
 print("RAG 벡터DB 준비 완료!")
 
