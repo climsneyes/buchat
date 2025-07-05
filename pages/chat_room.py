@@ -14,7 +14,331 @@ client = openai.OpenAI(api_key=OPENAI_API_KEY)
 # 언어 코드에 따른 전체 언어 이름 매핑
 LANG_NAME_MAP = {
     "ko": "한국어", "en": "영어", "ja": "일본어", "zh": "중국어",
-    "fr": "프랑스어", "de": "독일어", "th": "태국어", "vi": "베트남어"
+    "fr": "프랑스어", "de": "독일어", "th": "태국어", "vi": "베트남어",
+    "zh-TW": "대만어", "zh-HK": "홍콩어", "id": "인도네시아어",
+    "zh-SG": "싱가포르 중국어", "en-SG": "싱가포르 영어", "ms-SG": "싱가포르 말레이어", "ta-SG": "싱가포르 타밀어"
+}
+
+# RAG 가이드 텍스트 다국어 사전 (상세 구조)
+RAG_GUIDE_TEXTS = {
+    "ko": {
+        "title": "다문화가족 한국생활안내",
+        "info": "다음과 같은 정보를 질문할 수 있습니다:",
+        "items": [
+            "🏥 병원, 약국 이용 방법",
+            "🏦 은행, 우체국, 관공서 이용",
+            "🚌 교통수단 이용 (버스, 지하철, 기차)",
+            "🚗 운전면허, 자가용, 택시 이용",
+            "🏠 집 구하기",
+            "📱 핸드폰 사용하기",
+            "🗑️ 쓰레기 버리기 (종량제, 분리배출)",
+            "🆔 외국인등록증 신청, 체류기간 연장"
+        ],
+        "example_title": "질문 예시:",
+        "examples": [
+            "• 외국인등록을 하려면 어디로 가요?",
+            "• 대한민국에서 더 살게 됐는데 어떡하죠?",
+            "• 외국인은 핸드폰을 어떻게 사용하나요?",
+            "• 전셋집이 뭐예요?",
+            "• 공인중개사무소가 뭐죠?",
+            "• 집 계약서는 어떻게 쓰면 되나요?",
+            "• 대한민국 운전면허증을 받는 과정은?",
+            "• 쓰레기 봉투는 어디서 사나요?",
+            "• 쓰레기 버리는 방법은요?",
+            "• 몸이 아픈데 어떡하죠?",
+            "• 병원에 갈 때 필요한 건강보험증이 뭐죠?",
+            "• 한의원은 일반병원과 다른가요?",
+            "• 처방전이 없는데 어떻게 하나요?",
+            "• 은행계좌는 어떻게 만들어요?",
+            "• 외국에 물건을 보내고 싶은데 어떻게 하죠?",
+            "• 24시간 콜센터 번호는 어떻게 되죠?",
+            "• 긴급전화 번호는 뭐에요?",
+            "• 한국어를 배울 수 있는 방법은요?"
+        ],
+        "input_hint": "아래에 질문을 입력해보세요! 💬"
+    },
+    "en": {
+        "title": "Korean Life Guide for Multicultural Families",
+        "info": "You can ask about the following topics:",
+        "items": [
+            "🏥 How to use hospitals and pharmacies",
+            "🏦 How to use banks, post offices, government offices",
+            "🚌 How to use public transport (bus, subway, train)",
+            "🚗 Driver's license, private car, taxi",
+            "🏠 Finding a house",
+            "📱 Using a mobile phone",
+            "🗑️ How to dispose of trash (volume-based, recycling)",
+            "🆔 Alien registration, extension of stay"
+        ],
+        "example_title": "Example questions:",
+        "examples": [
+            "• Where do I go to register as a foreigner?",
+            "• I need to stay longer in Korea, what should I do?",
+            "• How do foreigners use mobile phones?",
+            "• What is jeonse (deposit-based housing)?",
+            "• What is a real estate agency?",
+            "• How do I write a housing contract?",
+            "• What is the process for getting a Korean driver's license?",
+            "• Where do I buy trash bags?",
+            "• How do I dispose of trash?",
+            "• I'm sick, what should I do?",
+            "• What is health insurance card needed for hospitals?",
+            "• Is oriental medicine different from regular hospitals?",
+            "• What if I don't have a prescription?",
+            "• How do I open a bank account?",
+            "• How do I send things abroad?",
+            "• What are the 24-hour call center numbers?",
+            "• What are the emergency numbers?",
+            "• How can I learn Korean?"
+        ],
+        "input_hint": "Type your question below! 💬"
+    },
+    "ja": {
+        "title": "多文化家族のための韓国生活ガイド",
+        "info": "以下のトピックについて質問できます:",
+        "items": [
+            "🏥 病院、薬局の利用方法",
+            "🏦 銀行、郵便局、政府機関の利用",
+            "🚌 公共交通機関の利用（バス、地下鉄、電車）",
+            "🚗 運転免許、自家用車、タクシー",
+            "🏠 家探し",
+            "📱 携帯電話の使用",
+            "🗑️ ゴミの捨て方（従量制、リサイクル）",
+            "🆔 外国人登録、滞在期間延長"
+        ],
+        "example_title": "質問例:",
+        "examples": [
+            "• 外国人登録はどこで行いますか？",
+            "• 韓国でより長く滞在する必要がありますが、どうすればいいですか？",
+            "• 外国人は携帯電話をどのように使用しますか？",
+            "• 全税（保証金ベースの住宅）とは何ですか？",
+            "• 不動産会社とは何ですか？",
+            "• 住宅契約書はどのように書けばいいですか？",
+            "• 韓国の運転免許を取得する手続きは？",
+            "• ゴミ袋はどこで買えますか？",
+            "• ゴミの捨て方は？",
+            "• 体調が悪いのですが、どうすればいいですか？",
+            "• 病院に行く際に必要な健康保険証とは？",
+            "• 韓医院は一般병원と違いますか？",
+            "• 処方箋がない場合はどうすればいいですか？",
+            "• 銀行口座はどのように開設しますか？",
+            "• 海外に物を送りたいのですが、どうすればいいですか？",
+            "• 24時間コールセンターの番号は？",
+            "• 緊急전화番号は何ですか？",
+            "• 韓国語を学ぶ方法は？"
+        ],
+        "input_hint": "下に質問を入力してください！💬"
+    },
+    "zh": {
+        "title": "多元文化家庭韩国生活指南",
+        "info": "您可以询问以下主题:",
+        "items": [
+            "🏥 如何使用医院和药房",
+            "🏦 如何使用银行、邮局、政府机关",
+            "🚌 如何使用公共交通（公交车、地铁、火车）",
+            "🚗 驾照、私家车、出租车",
+            "🏠 找房子",
+            "📱 使用手机",
+            "🗑️ 如何丢弃垃圾（按量收费、回收）",
+            "🆔 外国人登记、延长停留时间"
+        ],
+        "example_title": "问题示例:",
+        "examples": [
+            "• 我要去哪里办理外国人登记？",
+            "• 我需要在韩国停留更久，该怎么办？",
+            "• 外国人如何使用手机？",
+            "• 什么是全租房？",
+            "• 什么是房地产中介？",
+            "• 我该如何写房屋合约？",
+            "• 取得韩国驾照的流程是什么？",
+            "• 我在哪里买垃圾袋？",
+            "• 我该如何丢垃圾？",
+            "• 我生病了该怎么办？",
+            "• 去医院需要的健康保险卡是什么？",
+            "• 韩医院和一般医院有什麽不同？",
+            "• 如果没有处方怎么办？",
+            "• 我该如何开银行账户？",
+            "• 我该如何寄东西到国外？",
+            "• 24小时客服电话是多少？",
+            "• 紧急电话号码是什么？",
+            "• 我该如何学韩文？"
+        ],
+        "input_hint": "请在下方输入您的问题！💬"
+    },
+    "zh-TW": {
+        "title": "多元文化家庭韓國生活指南",
+        "info": "您可以詢問以下主題:",
+        "items": [
+            "🏥 如何使用醫院和藥局",
+            "🏦 如何使用銀行、郵局、政府機關",
+            "🚌 如何搭乘大眾運輸（公車、地鐵、火車）",
+            "🚗 駕照、私家車、計程車",
+            "🏠 找房子",
+            "📱 使用手機",
+            "🗑️ 如何丟垃圾（按量收費、回收）",
+            "🆔 外國人登記、延長停留時間"
+        ],
+        "example_title": "問題範例:",
+        "examples": [
+            "• 我要去哪裡辦理外國人登記？",
+            "• 我需要在韓國停留更久，該怎麼辦？",
+            "• 外國人如何使用手機？",
+            "• 什麼是全租房？",
+            "• 什麼是房地產仲介？",
+            "• 我該如何寫房屋合約？",
+            "• 取得韓國駕照的流程是什麼？",
+            "• 我在哪裡買垃圾袋？",
+            "• 我該如何丟垃圾？",
+            "• 我生病了該怎麼辦？",
+            "• 去醫院需要的健康保險卡是什麼？",
+            "• 韓醫院和一般醫院有什麼不同？",
+            "• 如果沒有處方怎麼辦？",
+            "• 我該如何開銀行帳戶？",
+            "• 我該如何寄東西到國外？",
+            "• 24小時客服電話是多少？",
+            "• 緊急電話號碼是什麼？",
+            "• 我該如何學韓文？"
+        ],
+        "input_hint": "請在下方輸入您的問題！💬"
+    },
+    "id": {
+        "title": "Panduan Hidup di Korea untuk Keluarga Multikultural",
+        "info": "Anda dapat bertanya tentang topik berikut:",
+        "items": [
+            "🏥 Cara menggunakan rumah sakit dan apotek",
+            "🏦 Cara menggunakan bank, kantor pos, kantor pemerintah",
+            "🚌 Cara menggunakan transportasi umum (bus, subway, kereta)",
+            "🚗 SIM, mobil pribadi, taksi",
+            "🏠 Mencari rumah",
+            "📱 Menggunakan ponsel",
+            "🗑️ Cara membuang sampah (berdasarkan volume, daur ulang)",
+            "🆔 Pendaftaran orang asing, perpanjangan masa tinggal"
+        ],
+        "example_title": "Contoh pertanyaan:",
+        "examples": [
+            "• Ke mana saya harus pergi untuk mendaftar sebagai orang asing?",
+            "• Saya perlu tinggal lebih lama di Korea, apa yang harus saya lakukan?",
+            "• Bagaimana orang asing menggunakan ponsel?",
+            "• Apa itu jeonse (rumah sewa deposit)?",
+            "• Apa itu agen real estat?",
+            "• Bagaimana cara menulis kontrak rumah?",
+            "• Apa proses mendapatkan SIM Korea?",
+            "• Di mana saya membeli kantong sampah?",
+            "• Bagaimana cara membuang sampah?",
+            "• Saya sakit, apa yang harus saya lakukan?",
+            "• Apa itu kartu asuransi kesehatan untuk rumah sakit?",
+            "• Apakah pengobatan oriental berbeda dengan rumah sakit biasa?",
+            "• Bagaimana jika saya tidak punya resep?",
+            "• Bagaimana cara membuka rekening bank?",
+            "• Bagaimana cara mengirim barang ke luar negeri?",
+            "• Berapa nomor call center 24 jam?",
+            "• Berapa nomor darurat?",
+            "• Bagaimana cara belajar bahasa Korea?"
+        ],
+        "input_hint": "Tulis pertanyaan Anda di bawah ini! 💬"
+    },
+    "vi": {
+        "title": "Hướng dẫn cuộc sống Hàn Quốc cho gia đình đa văn hóa",
+        "info": "Bạn có thể hỏi về các chủ đề sau:",
+        "items": [
+            "🏥 Cách sử dụng bệnh viện và nhà thuốc",
+            "🏦 Cách sử dụng ngân hàng, bưu điện, cơ quan chính phủ",
+            "🚌 Cách sử dụng phương tiện công cộng (xe buýt, tàu điện ngầm, tàu)",
+            "🚗 Bằng lái xe, xe riêng, taxi",
+            "🏠 Tìm nhà",
+            "📱 Sử dụng điện thoại di động",
+            "🗑️ Cách vứt rác (theo thể tích, tái chế)",
+            "🆔 Đăng ký người nước ngoài, gia hạn thời gian lưu trú"
+        ],
+        "example_title": "Ví dụ câu hỏi:",
+        "examples": [
+            "• Tôi đi đâu để đăng ký người nước ngoài?",
+            "• Tôi cần ở lại Hàn Quốc lâu hơn, tôi nên làm gì?",
+            "• Người nước ngoài sử dụng điện thoại di động như thế nào?",
+            "• Jeonse (nhà ở theo tiền đặt cọc) là gì?",
+            "• Công ty bất động sản là gì?",
+            "• Tôi viết hợp đồng nhà như thế nào?",
+            "• Quy trình lấy bằng lái xe Hàn Quốc là gì?",
+            "• Tôi mua túi rác ở đâu?",
+            "• Tôi vứt rác như thế nào?",
+            "• Tôi bị bệnh, tôi nên làm gì?",
+            "• Thẻ bảo hiểm y tế cần thiết cho bệnh viện là gì?",
+            "• Y học cổ truyền có khác với bệnh viện thường không?",
+            "• Nếu tôi không có đơn thuốc thì sao?",
+            "• Tôi mở tài khoản ngân hàng như thế nào?",
+            "• Tôi gửi đồ ra nước ngoài như thế nào?",
+            "• Số điện thoại trung tâm cuộc gọi 24 giờ là gì?",
+            "• Số điện thoại khẩn cấp là gì?",
+            "• Tôi có thể học tiếng Hàn như thế nào?"
+        ],
+        "input_hint": "Nhập câu hỏi của bạn bên dưới! 💬"
+    },
+    "fr": {
+        "title": "Guide de vie en Corée pour familles multiculturelles",
+        "info": "Vous pouvez poser des questions sur les sujets suivants :",
+        "items": [
+            "🏥 Comment utiliser les hôpitaux et pharmacies",
+            "🏦 Comment utiliser les banques, bureaux de poste, bureaux gouvernementaux",
+            "🚌 Comment utiliser les transports publics (bus, métro, train)",
+            "🚗 Permis de conduire, voiture privée, taxi",
+            "🏠 Trouver une maison",
+            "📱 Utiliser un téléphone portable",
+            "🗑️ Comment jeter les déchets (basé sur le volume, recyclage)",
+            "🆔 Enregistrement des étrangers, prolongation du séjour"
+        ],
+        "example_title": "Exemples de questions :",
+        "examples": [
+            "• Comment inscrire mon enfant à l'école coréenne ?",
+            "• Comment demander l'assurance maladie coréenne ?",
+            "• Parlez-moi de la culture culinaire coréenne",
+            "• Comment utiliser les transports publics coréens ?"
+        ],
+        "input_hint": "Tapez votre question ci-dessous ! 💬"
+    },
+    "de": {
+        "title": "Leitfaden für das Leben in Korea für multikulturelle Familien",
+        "info": "Sie können Fragen zu folgenden Themen stellen:",
+        "items": [
+            "🏥 Wie man Krankenhäuser und Apotheken nutzt",
+            "🏦 Wie man Banken, Postämter, Regierungsbüros nutzt",
+            "🚌 Wie man öffentliche Verkehrsmittel nutzt (Bus, U-Bahn, Zug)",
+            "🚗 Führerschein, Privatauto, Taxi",
+            "🏠 Haus finden",
+            "📱 Mobiltelefon nutzen",
+            "🗑️ Wie man Müll entsorgt (volumenbasiert, Recycling)",
+            "🆔 Ausländerregistrierung, Aufenthaltsverlängerung"
+        ],
+        "example_title": "Beispielfragen:",
+        "examples": [
+            "• Wie melde ich mein Kind in einer koreanischen Schule an?",
+            "• Wie beantrage ich koreanische Krankenversicherung?",
+            "• Erzählen Sie mir von der koreanischen Esskultur",
+            "• Wie benutze ich koreanische öffentliche Verkehrsmittel?"
+        ],
+        "input_hint": "Geben Sie Ihre Frage unten ein! 💬"
+    },
+    "th": {
+        "title": "คู่มือการใช้ชีวิตในเกาหลีสำหรับครอบครัวพหุวัฒนธรรม",
+        "info": "คุณสามารถถามเกี่ยวกับหัวข้อต่อไปนี้:",
+        "items": [
+            "🏥 วิธีใช้โรงพยาบาลและร้านขายยา",
+            "🏦 วิธีใช้ธนาคาร ที่ทำการไปรษณีย์ สำนักงานรัฐบาล",
+            "🚌 วิธีใช้ระบบขนส่งสาธารณะ (รถบัส รถไฟใต้ดิน รถไฟ)",
+            "🚗 ใบขับขี่ รถส่วนตัว แท็กซี่",
+            "🏠 หาบ้าน",
+            "📱 ใช้โทรศัพท์มือถือ",
+            "🗑️ วิธีทิ้งขยะ (ตามปริมาณ การรีไซเคิล)",
+            "🆔 การลงทะเบียนชาวต่างชาติ การขยายเวลาพำนัก"
+        ],
+        "example_title": "ตัวอย่างคำถาม:",
+        "examples": [
+            "• ฉันจะลงทะเบียนลูกในโรงเรียนเกาหลีได้อย่างไร?",
+            "• ฉันจะสมัครประกันสุขภาพเกาหลีได้อย่างไร?",
+            "• บอกฉันเกี่ยวกับวัฒนธรรมอาหารเกาหลี",
+            "• ฉันจะใช้ระบบขนส่งสาธารณะของเกาหลีได้อย่างไร?"
+        ],
+        "input_hint": "พิมพ์คำถามของคุณด้านล่าง! 💬"
+    }
 }
 
 def translate_message(text, target_lang):
@@ -81,9 +405,22 @@ def transcribe_from_mic(input_box: ft.TextField, page: ft.Page, mic_button: ft.I
             os.remove(filename)
         page.update()
 
-def ChatRoomPage(page, room_id, room_title, user_lang, target_lang, on_back=None, on_share=None, custom_translate_message=None):
+def ChatRoomPage(page, room_id, room_title, user_lang, target_lang, on_back=None, on_share=None, custom_translate_message=None, firebase_available=True):
+    # 화면 크기에 따른 반응형 설정
+    is_mobile = page.width < 600
+    is_tablet = 600 <= page.width < 1024
+    
+    # 반응형 크기 계산
+    title_size = 18 if is_mobile else 22
+    nickname_size = 10 if is_mobile else 12
+    message_size = 14 if is_mobile else 16
+    translated_size = 10 if is_mobile else 12
+    input_height = 45 if is_mobile else 50
+    bubble_padding = 8 if is_mobile else 12
+    header_padding = 12 if is_mobile else 16
+    
     # --- 상태 및 컨트롤 초기화 ---
-    chat_messages = Column(auto_scroll=True, spacing=15, expand=True)
+    chat_messages = Column(auto_scroll=True, spacing=10 if is_mobile else 15, expand=True)
     current_target_lang = [target_lang]
     is_korean = user_lang == "ko"
     # RAG 채팅방인지 확인
@@ -98,38 +435,78 @@ def ChatRoomPage(page, room_id, room_title, user_lang, target_lang, on_back=None
         "fr": "Posez des questions sur la vie en Corée",
         "de": "Stellen Sie Fragen zum Leben in Korea",
         "th": "สอบถามเกี่ยวกับการใช้ชีวิตในเกาหลีได้เลย",
+        "zh-TW": "請詢問有關在韓國生活的問題",
+        "id": "Tanyakan tentang kehidupan di Korea",
     }
-    input_hint = RAG_INPUT_HINTS.get(user_lang, RAG_INPUT_HINTS["ko"]) if is_rag_room else ("메시지 입력" if is_korean else "Type a message")
-    input_box = ft.TextField(hint_text=input_hint, expand=True)
+    input_hint = RAG_INPUT_HINTS.get(user_lang, RAG_INPUT_HINTS["en"]) if is_rag_room else {
+        "ko": "메시지 입력",
+        "en": "Type a message",
+        "vi": "Nhập tin nhắn",
+        "ja": "メッセージを入力",
+        "zh": "输入消息",
+        "fr": "Entrez un message",
+        "de": "Nachricht eingeben",
+        "th": "พิมพ์ข้อความ",
+        "zh-TW": "輸入訊息",
+        "id": "Ketik pesan",
+    }.get(user_lang, "Type a message")
+    input_box = ft.TextField(hint_text=input_hint, expand=True, height=input_height)
     if is_rag_room:
         translate_switch = None  # RAG 답변 ON/OFF 스위치 제거
     else:
         switch_label = "번역 ON/OFF" if is_korean else "Translate ON/OFF"
         translate_switch = ft.Switch(label=switch_label, value=True)
 
+    def on_target_lang_change(e):
+        current_target_lang[0] = e.control.value
+
+    # 번역 대상 언어 드롭다운 옵션 (국기+영어 국가명)
+    target_lang_options = [
+        ("ko", "🇰🇷 Korean"),
+        ("en", "🇺🇸 English"),
+        ("ja", "🇯🇵 Japanese"),
+        ("zh", "🇨🇳 Chinese"),
+        ("zh-TW", "🇹🇼 Taiwanese"),
+        ("id", "🇮🇩 Indonesian"),
+        ("ms", "🇲🇾 Malay"),
+        ("ta", "🇮🇳 Tamil"),
+        ("fr", "🇫🇷 French"),
+        ("de", "🇩🇪 German"),
+        ("th", "🇹🇭 Thai"),
+        ("vi", "🇻🇳 Vietnamese"),
+    ]
+    target_lang_dropdown = ft.Dropdown(
+        value=current_target_lang[0],
+        options=[ft.dropdown.Option(key, text) for key, text in target_lang_options],
+        width=180 if is_mobile else 220,
+        on_change=on_target_lang_change
+    ) if not is_rag_room else None
+
     def create_message_bubble(msg_data, is_me):
         """메시지 말풍선을 생성하는 함수"""
         message_column = ft.Column(
             [
-                ft.Text(msg_data.get('nickname', '익명'), size=12, color=ft.Colors.GREY_700),  # 닉네임 표시
-                ft.Text(msg_data['text'], color=ft.Colors.WHITE if is_me else ft.Colors.BLACK),
+                ft.Text(msg_data.get('nickname', '익명'), size=nickname_size, color=ft.Colors.GREY_700, selectable=True),  # 닉네임 표시
+                ft.Text(msg_data['text'], color=ft.Colors.WHITE if is_me else ft.Colors.BLACK, size=message_size, selectable=True),
                 ft.Text(
                     f"({msg_data['translated']})" if msg_data.get('translated') else "",
                     color=ft.Colors.WHITE70 if is_me else ft.Colors.GREY_700,
-                    size=12,
+                    size=translated_size,
                     italic=True,
+                    selectable=True,
                 )
             ],
-            spacing=4,
+            spacing=3 if is_mobile else 4,
         )
 
         bubble = ft.Container(
             content=message_column,
-            padding=12,
-            border_radius=18,
+            padding=bubble_padding,
+            border_radius=15 if is_mobile else 18,
             bgcolor=ft.Colors.BLUE_500 if is_me else ft.Colors.GREY_300,  # 본인: 파란색, 상대: 회색
-            margin=ft.margin.only(top=5, bottom=5, left=5, right=5),
+            margin=ft.margin.only(top=3 if is_mobile else 5, bottom=3 if is_mobile else 5, left=3 if is_mobile else 5, right=3 if is_mobile else 5),
             alignment=ft.alignment.center_right if is_me else ft.alignment.center_left,  # 본인: 오른쪽, 상대: 왼쪽
+            width=page.width * 0.75 if is_mobile else None,  # 모바일에서 최대 너비 제한
         )
 
         # 내가 보낸 메시지는 오른쪽, 상대 메시지는 왼쪽에 정렬
@@ -140,543 +517,248 @@ def ChatRoomPage(page, room_id, room_title, user_lang, target_lang, on_back=None
 
     # --- Firebase 리스너 콜백 ---
     def on_message(event):
-        # 다국어 안내 메시지 딕셔너리
-        RAG_GUIDE_TEXTS = {
-            "ko": {
-                "title": "다문화가족 한국생활안내",
-                "info": "다음과 같은 정보를 질문할 수 있습니다:",
-                "items": [
-                    "🏥 병원, 약국 이용 방법",
-                    "🏦 은행, 우체국, 관공서 이용",
-                    "🚌 교통수단 이용 (버스, 지하철, 기차)",
-                    "🚗 운전면허, 자가용, 택시 이용",
-                    "🏠 집 구하기",
-                    "📱 핸드폰 사용하기",
-                    "🗑️ 쓰레기 버리기 (종량제, 분리배출)",
-                    "🆔 외국인등록증 신청, 체류기간 연장"
-                ],
-                "example_title": "질문 예시:",
-                "examples": [
-                    "• 외국인등록을 하려면 어디로 가요?",
-                    "• 대한민국에서 더 살게 됐는데 어떡하죠?",
-                    "• 외국인은 핸드폰을 어떻게 사용하나요?",
-                    "• 전셋집이 뭐예요?",
-                    "• 공인중개사무소가 뭐죠?",
-                    "• 집 계약서는 어떻게 쓰면 되나요?",
-                    "• 대한민국 운전면허증을 받는 과정은?",
-                    "• 쓰레기 봉투는 어디서 사나요?",
-                    "• 쓰레기 버리는 방법은요?",
-                    "• 몸이 아픈데 어떡하죠?",
-                    "• 병원에 갈 때 필요한 건강보험증이 뭐죠?",
-                    "• 한의원은 일반병원과 다른가요?",
-                    "• 처방전이 없는데 어떻게 하나요?",
-                    "• 은행계좌는 어떻게 만들어요?",
-                    "• 외국에 물건을 보내고 싶은데 어떻게 하죠?",
-                    "• 24시간 콜센터 번호는 어떻게 되죠?",
-                    "• 긴급전화 번호는 뭐에요?",
-                    "• 한국어를 배울 수 있는 방법은요?"
-                ],
-                "input_hint": "아래에 질문을 입력해보세요! 💬"
-            },
-            "en": {
-                "title": "Korean Life Guide for Multicultural Families",
-                "info": "You can ask about the following topics:",
-                "items": [
-                    "🏥 How to use hospitals and pharmacies",
-                    "🏦 How to use banks, post offices, government offices",
-                    "🚌 How to use public transport (bus, subway, train)",
-                    "🚗 Driver's license, private car, taxi",
-                    "🏠 Finding a house",
-                    "📱 Using a mobile phone",
-                    "🗑️ How to dispose of trash (volume-based, recycling)",
-                    "🆔 Alien registration, extension of stay"
-                ],
-                "example_title": "Example questions:",
-                "examples": [
-                    "• Where do I go to register as a foreigner?",
-                    "• I need to stay longer in Korea, what should I do?",
-                    "• How do foreigners use mobile phones?",
-                    "• What is jeonse (deposit-based housing)?",
-                    "• What is a real estate agency?",
-                    "• How do I write a housing contract?",
-                    "• What is the process to get a Korean driver's license?",
-                    "• Where can I buy garbage bags?",
-                    "• How do I dispose of trash?",
-                    "• I'm sick, what should I do?",
-                    "• What is health insurance card needed for hospitals?",
-                    "• Is traditional Korean medicine different from regular hospitals?",
-                    "• What if I don't have a prescription?",
-                    "• How do I open a bank account?",
-                    "• How do I send packages abroad?",
-                    "• What are the 24-hour call center numbers?",
-                    "• What are the emergency phone numbers?",
-                    "• How can I learn Korean?"
-                ],
-                "input_hint": "Type your question below! 💬"
-            },
-            "vi": {
-                "title": "Hướng dẫn cuộc sống Hàn Quốc cho gia đình đa văn hóa",
-                "info": "Bạn có thể hỏi về các thông tin sau:",
-                "items": [
-                    "🏥 Cách sử dụng bệnh viện, nhà thuốc",
-                    "🏦 Cách sử dụng ngân hàng, bưu điện, cơ quan công quyền",
-                    "🚌 Cách sử dụng phương tiện giao thông (xe buýt, tàu điện ngầm, tàu hỏa)",
-                    "🚗 Bằng lái xe, xe riêng, taxi",
-                    "🏠 Tìm nhà ở",
-                    "📱 Sử dụng điện thoại di động",
-                    "🗑️ Cách vứt rác (theo khối lượng, phân loại)",
-                    "🆔 Đăng ký người nước ngoài, gia hạn lưu trú"
-                ],
-                "example_title": "Ví dụ câu hỏi:",
-                "examples": [
-                    "• Tôi phải đi đâu để đăng ký người nước ngoài?",
-                    "• Tôi cần ở lại Hàn Quốc lâu hơn, phải làm gì?",
-                    "• Người nước ngoài sử dụng điện thoại di động như thế nào?",
-                    "• Jeonse (nhà ở theo tiền đặt cọc) là gì?",
-                    "• Văn phòng môi giới bất động sản là gì?",
-                    "• Làm thế nào để viết hợp đồng thuê nhà?",
-                    "• Quy trình lấy bằng lái xe Hàn Quốc là gì?",
-                    "• Mua túi rác ở đâu?",
-                    "• Vứt rác như thế nào?",
-                    "• Tôi bị bệnh, phải làm gì?",
-                    "• Thẻ bảo hiểm y tế cần thiết khi đi bệnh viện là gì?",
-                    "• Y học cổ truyền Hàn Quốc có khác bệnh viện thường không?",
-                    "• Nếu không có đơn thuốc thì sao?",
-                    "• Mở tài khoản ngân hàng như thế nào?",
-                    "• Gửi hàng ra nước ngoài như thế nào?",
-                    "• Số điện thoại trung tâm hỗ trợ 24 giờ là gì?",
-                    "• Số điện thoại khẩn cấp là gì?",
-                    "• Học tiếng Hàn như thế nào?"
-                ],
-                "input_hint": "Hãy nhập câu hỏi bên dưới! 💬"
-            },
-            "ja": {
-                "title": "多文化家族のための韓国生活ガイド",
-                "info": "次のような情報について質問できます:",
-                "items": [
-                    "🏥 病院・薬局の利用方法",
-                    "🏦 銀行・郵便局・官公庁の利用",
-                    "🚌 交通機関の利用（バス・地下鉄・電車）",
-                    "🚗 運転免許・自家用車・タクシー利用",
-                    "🏠 住まい探し",
-                    "📱 携帯電話の使い方",
-                    "🗑️ ゴミの捨て方（有料・分別）",
-                    "🆔 外国人登録証の申請、滞在期間の延長"
-                ],
-                "example_title": "質問例:",
-                "examples": [
-                    "• 外国人登録はどこでできますか？",
-                    "• 韓国でより長く滞在する必要がありますが、どうすればいいですか？",
-                    "• 外国人の携帯電話の使い方は？",
-                    "• チョンセ（保証金住宅）とは何ですか？",
-                    "• 不動産会社とは何ですか？",
-                    "• 住宅契約書はどう書けばいいですか？",
-                    "• 韓国の運転免許証を取得する手順は？",
-                    "• ゴミ袋はどこで買えますか？",
-                    "• ゴミの捨て方は？",
-                    "• 体調が悪いのですが、どうすればいいですか？",
-                    "• 病院に行く時に必要な健康保険証とは？",
-                    "• 韓医院は一般病院と違いますか？",
-                    "• 処方箋がない場合はどうすればいいですか？",
-                    "• 銀行口座はどうやって作りますか？",
-                    "• 海外に荷物を送りたいのですが、どうすればいいですか？",
-                    "• 24時間コールセンターの番号は？",
-                    "• 緊急電話番号は何ですか？",
-                    "• 韓国語を学ぶ方法は？"
-                ],
-                "input_hint": "下に質問を入力してください！ 💬"
-            },
-            "zh": {
-                "title": "多文化家庭韩国生活指南",
-                "info": "您可以咨询以下信息：",
-                "items": [
-                    "🏥 医院、药房使用方法",
-                    "🏦 银行、邮局、政府机关利用",
-                    "🚌 交通工具使用（公交车、地铁、火车）",
-                    "🚗 驾驶证、私家车、出租车",
-                    "🏠 找房子",
-                    "📱 手机使用",
-                    "🗑️ 垃圾分类（按量收费、分类回收）",
-                    "🆔 外国人登记证申请、居留期限延长"
-                ],
-                "example_title": "问题示例：",
-                "examples": [
-                    "• 外国人登记要去哪里？",
-                    "• 需要在韩国住更长时间，怎么办？",
-                    "• 外国人怎么使用手机？",
-                    "• 全税房是什么？",
-                    "• 不动产中介是什么？",
-                    "• 房屋合同怎么写？",
-                    "• 韩国驾驶证获取流程是什么？",
-                    "• 垃圾袋在哪里买？",
-                    "• 垃圾怎么扔？",
-                    "• 身体不舒服怎么办？",
-                    "• 去医院需要的健康保险证是什么？",
-                    "• 韩医院和普通医院不同吗？",
-                    "• 没有处方怎么办？",
-                    "• 银行账户怎么开？",
-                    "• 想寄东西到国外怎么办？",
-                    "• 24小时客服电话是多少？",
-                    "• 紧急电话是什么？",
-                    "• 怎么学习韩语？"
-                ],
-                "input_hint": "请在下方输入您的问题！💬"
-            },
-            "fr": {
-                "title": "Guide de la vie en Corée pour les familles multiculturelles",
-                "info": "Vous pouvez poser des questions sur les sujets suivants :",
-                "items": [
-                    "🏥 Comment utiliser les hôpitaux et pharmacies",
-                    "🏦 Comment utiliser les banques, bureaux de poste, services gouvernementaux",
-                    "🚌 Comment utiliser les transports publics (bus, métro, train)",
-                    "🚗 Permis de conduire, voiture privée, taxi",
-                    "🏠 Trouver un logement",
-                    "📱 Utiliser un téléphone portable",
-                    "🗑️ Comment jeter les déchets (tarification au volume, tri)",
-                    "🆔 Enregistrement des étrangers, prolongation du séjour"
-                ],
-                "example_title": "Exemples de questions :",
-                "examples": [
-                    "• Où aller pour s'enregistrer en tant qu'étranger ?",
-                    "• Je dois rester plus longtemps en Corée, que faire ?",
-                    "• Comment les étrangers utilisent-ils les téléphones portables ?",
-                    "• Qu'est-ce que le jeonse (logement avec dépôt) ?",
-                    "• Qu'est-ce qu'une agence immobilière ?",
-                    "• Comment rédiger un contrat de location ?",
-                    "• Quel est le processus pour obtenir un permis de conduire coréen ?",
-                    "• Où acheter des sacs poubelle ?",
-                    "• Comment jeter les déchets ?",
-                    "• Je suis malade, que faire ?",
-                    "• Qu'est-ce que la carte d'assurance maladie nécessaire pour les hôpitaux ?",
-                    "• La médecine traditionnelle coréenne est-elle différente des hôpitaux ordinaires ?",
-                    "• Que faire si je n'ai pas d'ordonnance ?",
-                    "• Comment ouvrir un compte bancaire ?",
-                    "• Comment envoyer des colis à l'étranger ?",
-                    "• Quels sont les numéros de centre d'appel 24h ?",
-                    "• Quels sont les numéros d'urgence ?",
-                    "• Comment apprendre le coréen ?"
-                ],
-                "input_hint": "Tapez votre question ci-dessous ! 💬"
-            },
-            "de": {
-                "title": "Koreanischer Lebensratgeber für multikulturelle Familien",
-                "info": "Sie können Fragen zu folgenden Themen stellen:",
-                "items": [
-                    "🏥 Wie man Krankenhäuser und Apotheken nutzt",
-                    "🏦 Wie man Banken, Postämter, Behörden nutzt",
-                    "🚌 Wie man öffentliche Verkehrsmittel nutzt (Bus, U-Bahn, Zug)",
-                    "🚗 Führerschein, Privatwagen, Taxi",
-                    "🏠 Wohnungssuche",
-                    "📱 Mobiltelefon nutzen",
-                    "🗑️ Wie man Müll entsorgt (volumenbasiert, Recycling)",
-                    "🆔 Ausländerregistrierung, Aufenthaltsverlängerung"
-                ],
-                "example_title": "Beispielfragen:",
-                "examples": [
-                    "• Wo gehe ich hin, um mich als Ausländer zu registrieren?",
-                    "• Ich muss länger in Korea bleiben, was soll ich tun?",
-                    "• Wie nutzen Ausländer Mobiltelefone?",
-                    "• Was ist Jeonse (Kaution-basierte Wohnung)?",
-                    "• Was ist eine Immobilienagentur?",
-                    "• Wie schreibe ich einen Mietvertrag?",
-                    "• Wie ist der Prozess für einen koreanischen Führerschein?",
-                    "• Wo kann ich Müllsäcke kaufen?",
-                    "• Wie entsorge ich Müll?",
-                    "• Ich bin krank, was soll ich tun?",
-                    "• Was ist die Krankenversicherungskarte für Krankenhäuser?",
-                    "• Ist traditionelle koreanische Medizin anders als normale Krankenhäuser?",
-                    "• Was, wenn ich kein Rezept habe?",
-                    "• Wie eröffne ich ein Bankkonto?",
-                    "• Wie sende ich Pakete ins Ausland?",
-                    "• Was sind die 24-Stunden-Callcenter-Nummern?",
-                    "• Was sind die Notrufnummern?",
-                    "• Wie kann ich Koreanisch lernen?"
-                ],
-                "input_hint": "Geben Sie Ihre Frage unten ein! 💬"
-            },
-            "th": {
-                "title": "คู่มือการใช้ชีวิตในเกาหลีสำหรับครอบครัวพหุวัฒนธรรม",
-                "info": "คุณสามารถถามเกี่ยวกับข้อมูลต่อไปนี้:",
-                "items": [
-                    "🏥 วิธีการใช้โรงพยาบาลและร้านขายยา",
-                    "🏦 วิธีการใช้ธนาคาร ไปรษณีย์ หน่วยงานราชการ",
-                    "🚌 วิธีการใช้ขนส่งสาธารณะ (รถเมล์ รถไฟใต้ดิน รถไฟ)",
-                    "🚗 ใบขับขี่ รถส่วนตัว แท็กซี่",
-                    "🏠 การหาบ้าน",
-                    "📱 การใช้โทรศัพท์มือถือ",
-                    "🗑️ วิธีการทิ้งขยะ (คิดตามปริมาณ แยกประเภท)",
-                    "🆔 การลงทะเบียนชาวต่างชาติ การต่ออายุการพำนัก"
-                ],
-                "example_title": "ตัวอย่างคำถาม:",
-                "examples": [
-                    "• ไปลงทะเบียนชาวต่างชาติที่ไหน?",
-                    "• ต้องอยู่ในเกาหลีนานขึ้น ต้องทำอย่างไร?",
-                    "• ชาวต่างชาติใช้โทรศัพท์มือถืออย่างไร?",
-                    "• Jeonse (บ้านเช่าด้วยเงินประกัน) คืออะไร?",
-                    "• สำนักงานอสังหาริมทรัพย์คืออะไร?",
-                    "• เขียนสัญญาเช่าบ้านอย่างไร?",
-                    "• กระบวนการขอใบขับขี่เกาหลีเป็นอย่างไร?",
-                    "• ซื้อถุงขยะที่ไหน?",
-                    "• ทิ้งขยะอย่างไร?",
-                    "• ป่วย ต้องทำอย่างไร?",
-                    "• บัตรประกันสุขภาพที่จำเป็นสำหรับโรงพยาบาลคืออะไร?",
-                    "• การแพทย์แผนเกาหลีต่างจากโรงพยาบาลทั่วไปหรือไม่?",
-                    "• ถ้าไม่มีใบสั่งยาล่ะ?",
-                    "• เปิดบัญชีธนาคารอย่างไร?",
-                    "• ส่งพัสดุไปต่างประเทศอย่างไร?",
-                    "• เบอร์ศูนย์บริการ 24 ชั่วโมงคืออะไร?",
-                    "• เบอร์โทรฉุกเฉินคืออะไร?",
-                    "• เรียนภาษาเกาหลีได้อย่างไร?"
-                ],
-                "input_hint": "กรอกคำถามของคุณด้านล่าง! 💬"
-            }
-        }
-        # 현재 언어 가져오기 (없으면 ko)
-        current_lang = user_lang if user_lang in RAG_GUIDE_TEXTS else "ko"
-        guide = RAG_GUIDE_TEXTS[current_lang]
-        def get_rag_guide_message():
-            return ft.Container(
-                content=ft.Column([
-                    ft.Text(f"{current_lang.upper()} {guide['title']}", size=18, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_700),
-                    ft.Text(guide["info"], size=14, weight=ft.FontWeight.W_500),
-                    ft.Container(
-                        content=ft.Column([
-                            *(ft.Text(item, size=12) for item in guide["items"])
-                        ], spacing=5),
-                        padding=ft.padding.all(10),
-                        bgcolor=ft.Colors.BLUE_50,
-                        border_radius=10,
-                        margin=ft.margin.only(top=10, bottom=10)
-                    ),
-                    ft.Container(
-                        content=ft.Text(guide["example_title"], size=14, weight=ft.FontWeight.W_500),
-                        margin=ft.margin.only(top=10)
-                    ),
-                    ft.Container(
-                        content=ft.Column([
-                            *(ft.Text(ex, size=12, color=ft.Colors.GREY_700) for ex in guide["examples"])
-                        ], spacing=3),
-                        padding=ft.padding.all(10),
-                        bgcolor=ft.Colors.GREY_50,
-                        border_radius=10
-                    ),
-                    ft.Container(
-                        content=ft.Text(guide["input_hint"], size=12, color=ft.Colors.GREY_600),
-                        margin=ft.margin.only(top=10)
-                    )
-                ], spacing=8, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
-                padding=ft.padding.all(20),
-                bgcolor=ft.Colors.WHITE,
-                border_radius=15,
-                border=ft.border.all(1, ft.Colors.BLUE_200),
-                margin=ft.margin.symmetric(horizontal=20, vertical=10)
-            )
-
-        # 처음 로드 시 또는 데이터가 없을 때
-        if event.path == "/" and event.data is None:
-            chat_messages.controls.clear()
-            if is_rag_room:
-                chat_messages.controls.append(get_rag_guide_message())
-            else:
-                chat_messages.controls.append(ft.Text("아직 메시지가 없습니다. 첫 메시지를 보내보세요!", text_align=ft.TextAlign.CENTER))
-            page.update()
-            # UI 스레드에서 안전하게 스크롤 조정
+        
+        # RAG 채팅방인 경우 안내 메시지 표시
+        if is_rag_room and len(chat_messages.controls) == 0:
+            guide_texts = RAG_GUIDE_TEXTS.get(user_lang, RAG_GUIDE_TEXTS["ko"])
+            
+            # 안내 메시지 생성
+            def get_rag_guide_message():
+                guide_items = []
+                for item in guide_texts["items"]:
+                    guide_items.append(ft.Text(item, size=12 if is_mobile else 14, color=ft.Colors.GREY_700, selectable=True))
+                
+                example_items = []
+                for example in guide_texts["examples"]:
+                    example_items.append(ft.Text(example, size=11 if is_mobile else 12, color=ft.Colors.GREY_600, selectable=True))
+                
+                return ft.Container(
+                    content=ft.Column([
+                        ft.Text(guide_texts["title"], size=16 if is_mobile else 18, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_600, selectable=True),
+                        ft.Container(height=8),
+                        ft.Text(guide_texts["info"], size=13 if is_mobile else 14, color=ft.Colors.GREY_700, selectable=True),
+                        ft.Container(height=8),
+                        *guide_items,
+                        ft.Container(height=12),
+                        ft.Text(guide_texts["example_title"], size=13 if is_mobile else 14, weight=ft.FontWeight.BOLD, color=ft.Colors.GREY_700, selectable=True),
+                        ft.Container(height=6),
+                        *example_items,
+                        ft.Container(height=12),
+                        ft.Text(guide_texts["input_hint"], size=13 if is_mobile else 14, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_600, text_align=ft.TextAlign.CENTER, selectable=True),
+                    ], spacing=4),
+                    padding=16 if is_mobile else 20,
+                    bgcolor=ft.LinearGradient(["#E3F2FD", "#BBDEFB"], begin=ft.alignment.top_left, end=ft.alignment.bottom_right),
+                    border_radius=12,
+                    margin=ft.margin.only(bottom=16),
+                    border=ft.border.all(1, "#2196F3")
+                )
+            
+            chat_messages.controls.append(get_rag_guide_message())
+            
             def set_scroll():
-                try:
-                    if hasattr(page, 'views') and len(page.views) > 0:
-                        page.views[-1].scroll = ft.ScrollMode.ADAPTIVE
-                        page.update()
-                except Exception as e:
-                    print(f"스크롤 설정 중 오류: {e}")
-            if hasattr(page, 'run_on_main'):
-                page.run_on_main(set_scroll)
-            else:
-                set_scroll()
-            return
-        # 데이터가 딕셔너리 형태일 때 (초기 로드)
-        if event.path == "/" and isinstance(event.data, dict):
-            chat_messages.controls.clear() # 기존 메시지 초기화
-            # RAG 안내 메시지 항상 맨 위에 추가
-            if is_rag_room:
-                chat_messages.controls.append(get_rag_guide_message())
-            all_messages = sorted(event.data.values(), key=lambda x: x['timestamp'])
-            for msg_data in all_messages:
-                is_me = msg_data.get('user_id') == page.session.get("user_id") # user_id로 비교
-                chat_messages.controls.append(create_message_bubble(msg_data, is_me))
-        # 새로운 메시지가 추가될 때
-        elif event.path != "/" and isinstance(event.data, dict):
-            msg_data = event.data
-            is_me = msg_data.get('user_id') == page.session.get("user_id") # user_id로 비교
-            # "메시지가 없습니다" 텍스트 제거
-            if len(chat_messages.controls) == 1 and isinstance(chat_messages.controls[0], ft.Text):
-                chat_messages.controls.clear()
-            # RAG 안내 메시지만 있을 때는 그대로 두고 메시지 추가
-            chat_messages.controls.append(create_message_bubble(msg_data, is_me))
-        page.update()
-        # UI 스레드에서 안전하게 스크롤 조정
-        def set_scroll():
-            try:
-                if hasattr(page, 'views') and len(page.views) > 0:
-                    page.views[-1].scroll = ft.ScrollMode.ADAPTIVE
-                    page.update()
-            except Exception as e:
-                print(f"스크롤 설정 중 오류: {e}")
-        if hasattr(page, 'run_on_main'):
-            page.run_on_main(set_scroll)
-        else:
+                page.update()
+                time.sleep(0.1)
+                chat_messages.scroll_to(offset=0)
+                page.update()
+            
             set_scroll()
-
-    # --- Firebase 리스너 설정 ---
-    messages_ref = db.reference(f'/messages/{room_id}')
-    
-    # 페이지가 로드될 때 사용자 ID를 세션에 저장 (UUID 사용)
-    if not page.session.get("user_id"):
-        page.session.set("user_id", str(uuid.uuid4()))
-        page.update()
-
-    # --- 이벤트 핸들러 ---
-    def on_target_lang_change(e):
-        current_target_lang[0] = e.control.value
-        print(f"채팅방 내 번역 언어 변경: {current_target_lang[0]}")
-
-    def send_message(e=None):
-        msg_text = input_box.value.strip()
-        if not msg_text:
             return
         
-        if is_rag_room:
-            # 1. 내 질문 메시지(파란색, 오른쪽)
-            user_message = {
-                'user_id': page.session.get("user_id"),
-                'nickname': page.session.get("nickname"),
-                'user_lang': user_lang,
-                'text': msg_text,
-                'translated': "",
-                'timestamp': int(time.time() * 1000)
-            }
+        # 일반 메시지 처리
+        if event.data:
             try:
-                messages_ref.push(user_message)
-                input_box.value = ""
-                input_box.focus()
-                page.update()
-            except Exception as ex:
-                print(f"메시지 전송 실패: {ex}")
-            # 2. RAG 답변 메시지(회색, 왼쪽)
-            try:
-                rag_answer = custom_translate_message(msg_text, current_target_lang[0]) if custom_translate_message else ""
-                rag_message = {
-                    'user_id': "rag_bot",
-                    'nickname': "한국생활안내",
-                    'user_lang': user_lang,
-                    'text': rag_answer,
-                    'translated': "",
-                    'timestamp': int(time.time() * 1000) + 1  # 사용자 메시지보다 뒤에 오도록
+                data = event.data
+                if isinstance(data, str):
+                    import json
+                    data = json.loads(data)
+                
+                # 메시지 데이터 추출
+                msg_data = {
+                    'text': data.get('text', ''),
+                    'nickname': data.get('nickname', '익명'),
+                    'timestamp': data.get('timestamp', ''),
+                    'translated': data.get('translated', '')
                 }
-                messages_ref.push(rag_message)
-            except Exception as ex:
-                print(f"RAG 답변 생성 실패: {ex}")
-        else:
-            translated_text = ""
-            if translate_switch and translate_switch.value:
-                if custom_translate_message:
-                    translated_text = custom_translate_message(msg_text, current_target_lang[0])
-                else:
-                    translated_text = translate_message(msg_text, current_target_lang[0])
-            new_message = {
-                'user_id': page.session.get("user_id"),
-                'nickname': page.session.get("nickname"),
-                'user_lang': user_lang,
-                'text': msg_text,
-                'translated': translated_text,
-                'timestamp': int(time.time() * 1000)
-            }
+                
+                # 메시지 말풍선 생성
+                is_me = msg_data['nickname'] == (page.session.get('nickname') or '')
+                message_bubble = create_message_bubble(msg_data, is_me)
+                
+                # 채팅창에 메시지 추가
+                chat_messages.controls.append(message_bubble)
+                
+                # 스크롤을 맨 아래로
+                def set_scroll():
+                    page.update()
+                    time.sleep(0.1)
+                    chat_messages.scroll_to(offset=999999)
+                    page.update()
+                
+                set_scroll()
+                
+            except Exception as e:
+                print(f"메시지 처리 오류: {e}")
+
+    # --- 메시지 전송 함수 ---
+    def send_message(e=None):
+        if not input_box.value or not input_box.value.strip():
+            return
+        
+        message_text = input_box.value.strip()
+        nickname = page.session.get('nickname') or '익명'
+        
+        # 번역 처리
+        translated_text = ""
+        if translate_switch and translate_switch.value and current_target_lang[0]:
             try:
-                messages_ref.push(new_message)
-                input_box.value = ""
-                input_box.focus()
+                translated_text = translate_message(message_text, current_target_lang[0])
+            except Exception as e:
+                translated_text = f"[번역 오류: {e}]"
+        
+        # Firebase에 메시지 저장
+        if firebase_available:
+            try:
+                message_data = {
+                    'text': message_text,
+                    'nickname': nickname,
+                    'timestamp': time.time(),
+                    'translated': translated_text
+                }
+                
+                # Firebase에 메시지 저장
+                db.reference(f'rooms/{room_id}/messages').push(message_data)
+                
+            except Exception as e:
+                print(f"Firebase 저장 오류: {e}")
+                # Firebase 실패시 로컬에만 표시
+                msg_data = {
+                    'text': message_text,
+                    'nickname': nickname,
+                    'timestamp': time.time(),
+                    'translated': translated_text
+                }
+                message_bubble = create_message_bubble(msg_data, True)
+                chat_messages.controls.append(message_bubble)
                 page.update()
-            except Exception as ex:
-                print(f"메시지 전송 실패: {ex}")
+        else:
+            # Firebase 없을 때 로컬에만 표시
+            msg_data = {
+                'text': message_text,
+                'nickname': nickname,
+                'timestamp': time.time(),
+                'translated': translated_text
+            }
+            message_bubble = create_message_bubble(msg_data, True)
+            chat_messages.controls.append(message_bubble)
+            page.update()
+        
+        # 입력창 초기화
+        input_box.value = ""
+        page.update()
+        
+        # 스크롤을 맨 아래로
+        def set_scroll():
+            page.update()
+            time.sleep(0.1)
+            chat_messages.scroll_to(offset=999999)
+            page.update()
+        
+        set_scroll()
 
-    # 뒤로가기 버튼 클릭 시 리스너 제거 (메모리 누수 방지)
+    # --- 뒤로가기 함수 ---
     def go_back(e):
-        print("채팅방을 나갑니다.")
-        on_back(e)
+        if on_back:
+            on_back(e)
 
-    # 핸들러를 컨트롤에 연결합니다.
-    input_box.on_submit = send_message
-
-    # 페이지가 처음 로드될 때 기존 메시지를 가져옵니다.
-    messages_ref.listen(on_message)
+    # --- Firebase 리스너 설정 ---
+    if firebase_available:
+        try:
+            # Firebase 리스너 설정
+            db.reference(f'rooms/{room_id}/messages').listen(on_message)
+        except Exception as e:
+            print(f"Firebase 리스너 설정 오류: {e}")
 
     # --- UI 구성 ---
-    lang_options_map = {
-        "en": "🇺🇸 English", "ko": "🇰🇷 한국어", "ja": "🇯🇵 日本語", "zh": "🇨🇳 中文",
-        "fr": "🇫🇷 Français", "de": "🇩🇪 Deutsch", "th": "🇹🇭 ไทย", "vi": "🇻🇳 Tiếng Việt"
+    # 다국어 '빠른 채팅방' 타이틀 사전
+    QUICK_ROOM_TITLES = {
+        "ko": "빠른 채팅방",
+        "en": "Quick Chat Room",
+        "ja": "クイックチャットルーム",
+        "zh": "快速聊天室",
+        "zh-TW": "快速聊天室",
+        "id": "Ruang Obrolan Cepat",
+        "vi": "Phòng chat nhanh",
+        "fr": "Salon de discussion rapide",
+        "de": "Schnell-Chatraum",
+        "th": "ห้องแชทด่วน"
     }
-    # 모든 경우에 본인 언어도 선택할 수 있도록 전체 언어 리스트를 사용
-    available_langs = [ft.dropdown.Option(code, name) for code, name in lang_options_map.items()]
-
-    # 상대방 언어 선택 드롭다운
-    target_lang_dd = ft.Dropdown(
-        value=current_target_lang[0],
-        options=available_langs,
-        on_change=on_target_lang_change,
-        width=180,
-        hint_text="번역할 언어"
+    # 공식 안내 채팅방(RAG) 헤더 타이틀 다국어 처리
+    is_rag_room = custom_translate_message is not None
+    rag_title = None
+    if is_rag_room:
+        rag_title = RAG_GUIDE_TEXTS.get(user_lang, RAG_GUIDE_TEXTS["en"])['title']
+    # 헤더 (뒤로가기 + 방 제목 + 공유 버튼)
+    display_room_title = rag_title if is_rag_room else (
+        QUICK_ROOM_TITLES.get(user_lang, "Quick Chat Room") if room_title in ["빠른 채팅방", "Quick Chat Room"] else room_title
+    )
+    header = ft.Container(
+        content=ft.Row([
+            ft.IconButton(ft.Icons.ARROW_BACK, on_click=go_back),
+            ft.Text(display_room_title, size=title_size, weight=ft.FontWeight.BOLD, color=ft.Colors.BLACK87, expand=True, selectable=True),
+            ft.IconButton(ft.Icons.SHARE, on_click=on_share) if on_share else ft.Container(),
+        ], alignment=ft.MainAxisAlignment.START, vertical_alignment=ft.CrossAxisAlignment.CENTER),
+        padding=header_padding,
+        bgcolor=ft.Colors.WHITE,
+        border_radius=8 if is_mobile else 10,
+        margin=ft.margin.only(bottom=8),
+        shadow=ft.BoxShadow(blur_radius=4, color="#B0BEC544")
     )
 
-    # 마이크 버튼 생성 및 UI에 추가 (서버 환경에서는 보이지 않게)
-    mic_button = None
-    if not IS_SERVER:
-        mic_button = ft.IconButton(ft.Icons.MIC)
-        mic_button.on_click = lambda e: transcribe_from_mic(input_box, page, mic_button)
+    # 하단 입력 영역
+    input_row = ft.Row([
+        input_box,
+        ft.IconButton(
+            ft.Icons.MIC,
+            on_click=lambda e: transcribe_from_mic(input_box, page, e.control),
+            tooltip="음성 입력"
+        ) if not IS_SERVER else ft.Container(),
+        ft.IconButton(
+            ft.Icons.SEND,
+            on_click=send_message,
+            tooltip="전송"
+        ),
+    ], alignment=ft.MainAxisAlignment.CENTER, vertical_alignment=ft.CrossAxisAlignment.CENTER)
 
-    # 번역 스위치가 있을 때만 Row에 추가
-    row_controls = [target_lang_dd]
-    if translate_switch:
-        row_controls.append(translate_switch)
+    # 번역 스위치 + 드롭다운 (RAG 채팅방이 아닐 때만)
+    switch_row = ft.Container(
+        content=ft.Row([
+            translate_switch,
+            target_lang_dropdown if target_lang_dropdown else ft.Container(),
+        ], alignment=ft.MainAxisAlignment.CENTER, spacing=12),
+        padding=8 if is_mobile else 12,
+        margin=ft.margin.only(bottom=8)
+    ) if translate_switch else ft.Container()
 
     return ft.View(
         f"/chat/{room_id}",
         controls=[
-            ft.Row(
-                [
-                    ft.IconButton(ft.Icons.ARROW_BACK, on_click=go_back, tooltip="뒤로가기"),
-                    ft.Text(f'"{room_title}"', size=16, weight=ft.FontWeight.BOLD, expand=True, text_align=ft.TextAlign.CENTER),
-                    ft.IconButton(ft.Icons.SHARE, on_click=on_share, tooltip="QR 코드로 공유") if on_share else ft.Container(width=40),
-                ],
-                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                height=50,
-            ),
-            ft.Divider(height=1),
-            # 채팅 메시지 영역(안내 메시지 포함) - 스크롤 영역
+            header,
             ft.Container(
-                content=ft.Column([
-                    chat_messages
-                ], expand=True),
-                expand=True, # Column이 확장되도록 설정
-                padding=ft.padding.symmetric(horizontal=15),
+                content=chat_messages,
+                expand=True,
+                padding=8 if is_mobile else 12,
+            ),
+            switch_row,
+            ft.Container(
+                content=input_row,
+                padding=header_padding,
                 bgcolor=ft.Colors.WHITE,
+                border_radius=8,
+                margin=ft.margin.only(top=8),
+                shadow=ft.BoxShadow(blur_radius=4, color="#B0BEC544")
             ),
-            # 입력창은 항상 하단에 고정
-            ft.Container(
-                content=ft.Column([
-                    ft.Row([
-                        input_box,
-                        ft.IconButton(ft.Icons.SEND, on_click=send_message, bgcolor=ft.Colors.BLUE_500, icon_color=ft.Colors.WHITE),
-                        *( [mic_button] if mic_button else [] ),
-                    ], spacing=8),
-                    ft.Row(row_controls, alignment=ft.MainAxisAlignment.END, spacing=10)
-                ], spacing=10),
-                padding=ft.padding.all(15),
-                border=ft.border.only(top=ft.border.BorderSide(1, ft.Colors.GREY_300)),
-                bgcolor=ft.Colors.GREY_50
-            )
         ],
-        padding=0, # View 전체 패딩 제거
-        bgcolor=ft.Colors.WHITE
+        bgcolor=ft.LinearGradient(["#F8FAFC", "#F1F5F9"], begin=ft.alignment.top_left, end=ft.alignment.bottom_right)
     )
 
 # 환경변수에서 firebase_key.json 내용을 읽어서 파일로 저장

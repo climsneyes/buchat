@@ -9,3 +9,4 @@ __pycache__/
 config.py
 firebase_key.json
 
+node_modules

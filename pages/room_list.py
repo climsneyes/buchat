@@ -1,6 +1,19 @@
 import flet as ft
 
 def RoomListPage(page, lang="ko", location="알 수 없는 위치", rooms=None, on_create=None, on_select=None, on_back=None):
+    # 화면 크기에 따른 반응형 설정
+    is_mobile = page.width < 600
+    is_tablet = 600 <= page.width < 1024
+    
+    # 반응형 크기 계산
+    container_width = min(page.width * 0.95, 500) if not is_mobile else page.width * 0.98
+    title_size = 20 if is_mobile else 24
+    card_text_size = 14 if is_mobile else 16
+    card_desc_size = 11 if is_mobile else 12
+    icon_size = 24 if is_mobile else 28
+    card_padding = 12 if is_mobile else 16
+    card_margin = 10 if is_mobile else 16
+    
     if rooms is None:
         rooms = []
         
@@ -75,17 +88,97 @@ def RoomListPage(page, lang="ko", location="알 수 없는 위치", rooms=None, 
     return ft.View(
         "/room_list",
         controls=[
+            # 헤더 (뒤로가기 + 타이틀)
             ft.Row([
                 ft.IconButton(ft.Icons.ARROW_BACK, on_click=on_back) if on_back else ft.Container(),
-                ft.Text(t["title_format"].format(location), size=16),
-            ], alignment=ft.MainAxisAlignment.START),
+                ft.Text(t["title_format"].replace("📍 현재위치: ", "채팅방 찾기 방법을 선택하세요"), size=title_size, weight=ft.FontWeight.BOLD, color=ft.Colors.BLACK87),
+            ], alignment=ft.MainAxisAlignment.START, spacing=6 if is_mobile else 8, vertical_alignment=ft.CrossAxisAlignment.CENTER),
+
+            # 카드형 버튼들
             ft.Container(
-                content=room_list_view,
-                padding=30,
+                content=ft.Column([
+                    ft.Container(
+                        content=ft.Row([
+                            ft.Container(
+                                content=ft.Icon(name=ft.Icons.TAG, color="#2563EB", size=icon_size),
+                                bgcolor="#E0E7FF", border_radius=10 if is_mobile else 12, padding=8 if is_mobile else 10, margin=ft.margin.only(right=10 if is_mobile else 12)
+                            ),
+                            ft.Column([
+                                ft.Text("ID로 찾기", size=card_text_size, weight=ft.FontWeight.BOLD, color=ft.Colors.BLACK87),
+                                ft.Text("채팅방 ID를 입력하여 참여", size=card_desc_size, color=ft.Colors.GREY_600)
+                            ], spacing=2)
+                        ], vertical_alignment=ft.CrossAxisAlignment.CENTER),
+                        bgcolor=ft.Colors.WHITE,
+                        border_radius=10 if is_mobile else 12,
+                        shadow=ft.BoxShadow(blur_radius=8, color="#B0BEC544"),
+                        padding=card_padding,
+                        margin=ft.margin.only(bottom=card_margin),
+                        on_click=lambda e: on_find_by_id(e),
+                        width=container_width
+                    ),
+                    ft.Container(
+                        content=ft.Row([
+                            ft.Container(
+                                content=ft.Icon(name=ft.Icons.QR_CODE, color="#A259FF", size=icon_size),
+                                bgcolor="#F3E8FF", border_radius=10 if is_mobile else 12, padding=8 if is_mobile else 10, margin=ft.margin.only(right=10 if is_mobile else 12)
+                            ),
+                            ft.Column([
+                                ft.Text("QR코드로 찾기", size=card_text_size, weight=ft.FontWeight.BOLD, color=ft.Colors.BLACK87),
+                                ft.Text("QR 코드를 스캔하여 빠른 참여", size=card_desc_size, color=ft.Colors.GREY_600)
+                            ], spacing=2)
+                        ], vertical_alignment=ft.CrossAxisAlignment.CENTER),
+                        bgcolor=ft.Colors.WHITE,
+                        border_radius=10 if is_mobile else 12,
+                        shadow=ft.BoxShadow(blur_radius=8, color="#B0BEC544"),
+                        padding=card_padding,
+                        margin=ft.margin.only(bottom=card_margin),
+                        on_click=lambda e: on_find_by_qr(e),
+                        width=container_width
+                    ),
+                    ft.Container(
+                        content=ft.Row([
+                            ft.Container(
+                                content=ft.Icon(name=ft.Icons.TABLE_CHART, color="#22C55E", size=icon_size),
+                                bgcolor="#DCFCE7", border_radius=10 if is_mobile else 12, padding=8 if is_mobile else 10, margin=ft.margin.only(right=10 if is_mobile else 12)
+                            ),
+                            ft.Column([
+                                ft.Text("대문하기술 한국생활안내", size=card_text_size, weight=ft.FontWeight.BOLD, color=ft.Colors.BLACK87),
+                                ft.Text("공식 안내 채팅방", size=card_desc_size, color=ft.Colors.GREY_600)
+                            ], spacing=2)
+                        ], vertical_alignment=ft.CrossAxisAlignment.CENTER),
+                        bgcolor=ft.Colors.WHITE,
+                        border_radius=10 if is_mobile else 12,
+                        shadow=ft.BoxShadow(blur_radius=8, color="#B0BEC544"),
+                        padding=card_padding,
+                        margin=ft.margin.only(bottom=card_margin),
+                        on_click=lambda e: on_rag_guide(e),
+                        width=container_width
+                    ),
+                    ft.Container(
+                        content=ft.Row([
+                            ft.Container(
+                                content=ft.Icon(name=ft.Icons.PERSON, color="#64748B", size=icon_size),
+                                bgcolor="#F1F5F9", border_radius=10 if is_mobile else 12, padding=8 if is_mobile else 10, margin=ft.margin.only(right=10 if is_mobile else 12)
+                            ),
+                            ft.Column([
+                                ft.Text("뒤로가기", size=card_text_size, weight=ft.FontWeight.BOLD, color=ft.Colors.BLACK87),
+                                ft.Text("메인 메뉴로 돌아가기", size=card_desc_size, color=ft.Colors.GREY_600)
+                            ], spacing=2)
+                        ], vertical_alignment=ft.CrossAxisAlignment.CENTER),
                 bgcolor=ft.Colors.WHITE,
-                border_radius=30,
-                shadow=ft.BoxShadow(blur_radius=20, color=ft.Colors.GREY_200)
-            )
+                        border_radius=10 if is_mobile else 12,
+                        shadow=ft.BoxShadow(blur_radius=8, color="#B0BEC544"),
+                        padding=card_padding,
+                        margin=ft.margin.only(bottom=0),
+                        on_click=lambda e: on_back(e) if on_back else None,
+                        width=container_width
+                    ),
+                ], alignment=ft.MainAxisAlignment.CENTER, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
+                padding=ft.padding.only(top=24 if is_mobile else 32),
+                alignment=ft.alignment.center,
+                width=container_width
+            ),
         ],
-        bgcolor=ft.Colors.GREY_100
+        bgcolor=ft.LinearGradient(["#F1F5FF", "#E0E7FF"], begin=ft.alignment.top_left, end=ft.alignment.bottom_right),
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER
     )
